@@ -1,7 +1,5 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<Properties Version="1">
-  <Property Name="Title" Value="Справочники Росстата"/>
-</Properties>
+<Properties Version="1"/>
 <Items>
   <Item Name="КТО"/>
   <Item Name="ККП"/>
