@@ -1,0 +1,125 @@
+Class inherited “ЅЅ_Ѕазовый.Ѕазовые.картƒокумент "‘ормы —»о«ѕ";
+
+Import “ЅЅ_Ѕазовый Classes ѕеременные;
+
+--{{2_ —войства
+
+inclass private
+  var  ласс»нтерфейса: class ћашина–еквизитов.Ѕазовые.инт«апись = ќтчетность.инт—»о«ѕ;
+  stored var √од—в: integer;
+  var ѕоле—толбцаЌаше: String:= 'Ќаше”чреждение.»м€';
+  var »дентифицироватьЌашеѕри—оздании: logical = true;
+
+inobject private
+  var √од—вќбъекта: integer;
+--}}
+
+--2_  онструкторы, визуализаторы0. --
+
+inclass public
+
+--2_ ќбработчики событий шаблона0. --
+
+inobject private
+
+  proc шаблон_ѕриќткрытии2_ 0.(Create:2_ 0.Logical);
+    var locCell: TemplateCell;
+    var лок одѕериода: string;
+    var локќтчетныйѕериод: “ЅЅ_Ѕазовый.—правочники.ѕериоды–асчета;
+    if (Mon(today) = 1):     лок одѕериода = Str((Year(today) - 1), '0000') + '4.12';
+    elsif (Mon(today) = 2):  лок одѕериода = Str((Year(today)), '0000') + '1.1.01';
+    elsif (Mon(today) = 3):  лок одѕериода = Str((Year(today)), '0000') + '1.1.02';
+    elsif (Mon(today) = 4):  лок одѕериода = Str((Year(today)), '0000') + '1.1.03';
+    elsif (Mon(today) = 5):  лок одѕериода = Str((Year(today)), '0000') + '1.2.04';
+    elsif (Mon(today) = 6):  лок одѕериода = Str((Year(today)), '0000') + '1.2.05';
+    elsif (Mon(today) = 7):  лок одѕериода = Str((Year(today)), '0000') + '1.2.06';
+    elsif (Mon(today) = 8):  лок одѕериода = Str((Year(today)), '0000') + '1.3.07';
+    elsif (Mon(today) = 9):  лок одѕериода = Str((Year(today)), '0000') + '1.3.08';
+    elsif (Mon(today) = 10): лок одѕериода = Str((Year(today)), '0000') + '1.3.09';
+    elsif (Mon(today) = 11): лок одѕериода = Str((Year(today)), '0000') + '1.4.10';
+    elsif (Mon(today) = 12): лок одѕериода = Str((Year(today)), '0000') + '1.4.11';
+    fi;
+    локќтчетныйѕериод = Ѕюджет_ѕерсонал. алендарь.ѕериодѕо оду(лок одѕериода);
+    ѕараметрыЌовой«аписи[1] = ['ќтчетныйѕериод', локќтчетныйѕериод];
+    inherited шаблон_ѕриќткрытии(Create);
+    locCell = Template.FrameByName['фрейм‘ильтр'].CellByField['√од—вќбъекта'];
+    locCell.List.Clear;
+    with Query.Create([“ЅЅ_Ѕазовый.—правочники.ѕериоды–асчета]) do
+      Filter = 'Match( од,"????")';
+      Order = ' од';
+      Select;
+      while (not Eof) do
+        locCell.List.Add(Current. од + '|' + Current. од); Next;
+      od;
+    end;
+  end;
+
+-- 2_ќбработчики событий картотеки0. --
+
+  func картотека_ѕри—оздании«аписи (var Record: ќтчетность.—»о«ѕ): Logical;
+    Result = inherited картотека_ѕри—оздании«аписи(Record);
+    Result = (Record.Ќаше”чреждение <> nil);
+    if Result:
+      Record.»ЌЌ = Record.Ќаше”чреждение.»ЌЌ;
+      Record. ѕѕ = Record.Ќаше”чреждение. одѕричины;
+    fi;
+  end;
+
+  func картотека_ѕеред»зменением(Action :Cardfile.ModifyActions; aRecord :Record; aGroup :Record; var AskConfirm :Logical) :Logical;
+    var i, ii: integer;
+    if (Action = Cardfile.DeleteRecord): --это удаление
+      if (aRecord <> nil): -- измен€етс€ одна запись
+        --ќтчетность.инт6Ќƒ‘Ћ2.”далить«аписи–азделов(aRecord);
+      else -- измен€етс€ группа записей -- (aRecord=nil)
+        ii = Self.Cardfile.SelectedCount;
+        for i = 1 .. ii do
+          Hint('[' + Str(i) + '/' + Str(ii) + '] : ”даление сопр€женных записей...');
+          --ќтчетность.инт6Ќƒ‘Ћ2.”далить«аписи–азделов(Self.Cardfile.Selected[i]);
+        od;
+      fi;
+    fi;
+    Result = inherited картотека_ѕеред»зменением(Action, aRecord, aGroup, AskConfirm);
+  end;
+
+--2_ ќбработчики событий клеток шаблона0. --
+
+  proc ѕолеЎаблона_ѕри¬ыходе2_ 0.(Cell: TemplateCell; Index: Integer);
+    if (Cell.Contents = 'Ќаше”чреждение'):
+      ќбновить‘ильтр;
+      Template.CellByField['√од—вќбъекта'].SetFocus;
+    elsif (Cell.Contents = '√од—вќбъекта'):
+      √од—в = √од—вќбъекта;
+      ќбновить‘ильтр;
+    fi;
+  end;
+
+  func ѕолеЎаблона_ѕри¬ыводе2_ 0.(Cell: TemplateCell; Value: Variant; Action: Template.OutputTypes; var Format: String): Variant;
+    if (Cell.Contents = 'Ќаше”чреждение'):
+      Result = inherited ѕолеЎаблона_ѕри¬ыводе(Cell, Value, Action, Format);
+    elsif (Cell.Contents = '√од—вќбъекта'):
+      if Cell.Value = nil:
+        Result = '<i+><cf:Gray>¬се';
+      else
+        Result = √од—вќбъекта;
+      fi;
+    fi;
+  end;
+
+--2_ ќбработчики событий прочих объектов шаблона0. --
+
+--2_ ќбработчики столбцов (полей) картотеки0. --
+
+--2_ ƒополнительные команды0. --
+
+--2_ ¬спомогательные методы0. --
+
+  --@doc ‘-€ перекрывает —»—2, устанавливает фильтр на кртотеку через контролы шаблона
+  func ѕолучить‘ильтр артотеки2_ 0.(var locTreeFilter: string = nil): string;
+    var StrArray: string[];
+    √од—вќбъекта = √од—в;
+    StrArray[1] = inherited ѕолучить‘ильтр артотеки(locTreeFilter);
+    StrArray[2] = if(√од—вќбъекта > 0, 'ќтчет√од=' + Str(√од—вќбъекта), nil);
+    Result = —»—2.—троковые‘ункции.—ложить—троки‘ильтраѕо»(StrArray);
+  end;
+
+end

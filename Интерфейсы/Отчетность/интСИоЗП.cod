@@ -1,17 +1,17 @@
-class inherited МашинаРеквизитов.Базовые.интЗаписьКодИмя "Интерфейс записи Справочники.Росстат.ККПА";
+class inherited МашинаРеквизитов.Базовые.интЗапись "";
 
 inclass public
 
   func СвязанныйКлассЗаписей: class СИС2.Базовая.БазоваяЗапись;
-    Result = Справочники.Росстат.ККПА;
+    Result = Отчетность.СИоЗП;
   end;
 
-  func Create: Справочники.Росстат.интККПА;
+  func Create: Отчетность.интСИоЗП;
     Result = inherited Create;
-    Result.SetRecord(Справочники.Росстат.ККПА.Create);
+    Result.SetRecord(Отчетность.СИоЗП.Create);
   end;
 
-  func ОткрытьПоЗаписи synonym OpenRecord (locRecord: Справочники.Росстат.ККПА): Справочники.Росстат.интККПА;
+  func ОткрытьПоЗаписи synonym OpenRecord (locRecord: Отчетность.СИоЗП): Отчетность.интСИоЗП;
     Result = FindInterfaceByRecord(locRecord);
     if (Result = nil):
       Result = inherited Create;
@@ -20,22 +20,22 @@ inclass public
   end;
 
   func БланкРедакторПоУмолчанию: class BlankForm;
-    Result = Справочники.Росстат.редККПА;
+    --Result = ФормыОтчетов.Фонды.редСИоЗП;
   end;
 
   func КартотекаПоУмолчанию: class CardForm;
-    Result = Справочники.Росстат.картККПА;
+    --Result = Отчетность.картСИоЗП;
   end;
 
 
 inobject public
 
-  Record: Справочники.Росстат.ККПА;
+  Record: Отчетность.СИоЗП;
 
 inobject private
 
   --@doc Эта процедура наследует МР; На нее завязано изменение поля Record во всех методах интерфейса;
-  proc SetRecord (locRecord: Справочники.Росстат.ККПА);
+  proc SetRecord (locRecord: Отчетность.СИоЗП);
     Inherited SetRecord(locRecord);
   end;
 

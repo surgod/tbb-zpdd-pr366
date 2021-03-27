@@ -6,10 +6,10 @@
   </Usage>
   <Groups>
     <Group Name="Записи" Type="Documents" Disabled="False"/>
+    <Group Name="ОбщиеКлассы" Type="Classes" Disabled="False"/>
     <Group Name="Классы" Type="Classes" Disabled="False"/>
     <Group Name="Интерфейсы" Type="Classes" Disabled="False"/>
     <Group Name="Бланки" Type="Blanks" Disabled="False"/>
     <Group Name="Картотеки" Type="Cards" Disabled="False"/>
-    <Group Name="Shared" Type="Other" Disabled="False"/>
   </Groups>
 </Project>

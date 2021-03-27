@@ -1,0 +1,327 @@
+Class inherited ћашина–еквизитов.Ѕазовые.бл–едактор—»нтерфейсом "‘орма —»о«ѕ" , editor ќтчетность.—»о«ѕ;
+
+import —»—2 classes ‘ункции, —троковые‘ункции, ‘ункцииƒокумента;
+import “ЅЅ_ќтчетность classes CheckXml;
+
+--{{ 2_—войства
+
+inclass public
+
+  var ƒатаЌачалајктуальности: date    := 01.01.2020;
+  var ƒатаќкончани€јктуальности: date := nil;
+
+inobject private
+
+  var фрейм—одержание: TemplateFrame;
+  var фрейм–аздел1: TemplateFrame;
+  var фрейм–аздел2: TemplateFrame;
+  var фрейм–аздел3: TemplateFrame;
+
+  var картЎаблона_–аздел1: TemplateCardfile;
+  var картЎаблона_–аздел2: TemplateCardfile;
+  var картЎаблона_–аздел3: TemplateCardfile;
+
+  var кнƒобавить—траницу: Button;
+  var кн—оздать‘айл: Button;
+  var кнѕечать: Button;
+
+  var »нтерфейс: ќтчетность.инт—»о«ѕ;
+  var Ѕиблиотека—тилей: “ЅЅ_Ѕазовый.Ѕиблиотека—тилей;
+
+  stored var ѕутьЁкспорта: string;
+--}}
+
+-- 2_ онструкторы, визуализаторы0. --
+
+-- 2_ќбработчики событий шаблона0. --
+
+inobject private
+
+  proc шаблон_ѕри—оздании (Context: Variant);
+    фрейм—одержание.Orientation = Template.Horizontal;
+    inherited шаблон_ѕри—оздании(Context);
+    Template.FrameByName['фреймЎапкаЌавигатора'].Section[1].Row[1].Height = 5.8;
+    with Template.FrameByName['фреймќписание–аздела'].Section[1] do
+      AjustWidth = true;
+      Row[1].Height = 5.8;
+      CellByField['Ќадпись“екущего‘рейма'].Font.Size = 10;
+    end;
+  end;
+
+  proc шаблон_ѕриќткрытии (Create: Logical);
+    Ѕиблиотека—тилей = “ЅЅ_Ѕазовый.Ѕиблиотека—тилей.CreateFromForm(Self);
+    фрейм«акладки.ShowTabs = false;
+    inherited шаблон_ѕриќткрытии(Create);
+  end;
+
+  proc шаблон_ѕри—читывании;
+    inherited шаблон_ѕри—читывании;
+  end;
+
+
+-- 2_ќбработчики событий клеток шаблона0. --
+
+inobject private
+
+  func ѕоле_ѕриЌажатии (Cell: TemplateCell; Action: Template.ClickTypes): Logical;
+    if (Cell.Contents = '+'):
+      if (Cell.Owner.Name = 'секцѕериод_—«ѕ_«аголовок'):
+        ƒобавитьќтчетныйћес€ц;
+      elsif (Cell.Owner.Name = 'секцѕериод_‘онд«ѕ_«аголовок'):
+        ƒобавитьќтчетный√од(ѕериод_‘онд«ѕ);
+      elsif (Cell.Owner.Name = 'секцѕериод_—«ѕ–ук_«аголовок'):
+        ƒобавитьќтчетный√од(ѕериод_—«ѕ–ук);
+      fi;
+    elsif (Cell.Contents = 'x'):
+      ”далитьќтчетныйѕериод(Cell);
+    fi;
+  end;
+
+  func ѕоле_ѕри¬ходе(Cell :TemplateCell; Index :Integer; Action :Template.EnterTypes) :Logical;
+    if (Cell.Contents = 'ќтчетныйѕериод'):
+      
+    fi;
+  end;
+
+  func ѕоле_ѕри¬ыводе (Cell: TemplateCell; Value: Variant; Action: Template.OutputTypes; var Format: String): Variant;
+    if (Cell.Contents = 'ѕериод') and (Cell.Owner.Name = 'секцѕериод_—«ѕ'):       Return ¬ывестиќтчетныйѕериод(Cell);
+    elsif (Cell.Contents = 'ѕериод') and (Cell.Owner.Name = 'секцѕериод_‘онд«ѕ'): Return ¬ывестиќтчетныйѕериод(Cell);
+    elsif (Cell.Contents = 'ѕериод') and (Cell.Owner.Name = 'секцѕериод_—«ѕ–ук'): Return ¬ывестиќтчетныйѕериод(Cell);
+
+
+    fi;
+  end;
+
+  func ѕоле_ѕри¬ыводе_«аголовокќкна‘ормы (Cell: TemplateCell; Value: Variant; Action: Template.OutputTypes; var Format: String): String;
+    Return ѕолучить«аголовокќкна;
+  end;
+
+-- 2_ќбработчики событий прочих объектов шаблона0. --
+
+  proc тблЌавигатор‘реймовѕриѕермещении (Sender: Grid);
+    var локЁлемент: Variant[];
+    Template.BeginModify;
+    локЁлемент = Sender.Current.Value as Variant[];
+    if (локЁлемент <> nil):
+      if (локЁлемент[1] <> »м€ орн€Ќавигатора): -- это не корень
+        »зменить—ервисные оманды(Sender.Current);
+      fi;
+    fi;
+    inherited тблЌавигатор‘реймовѕриѕермещении(Sender);
+    Template.EndModify;
+  end;
+
+
+-- 2_ƒополнительные команды0. --
+
+-- 2_¬спомогательные методы0. --
+
+  -- модификаторы  GUI --
+
+  proc ћодифицироватьЎаблон (Ўаблонћодифицирован: Logical = false); -- ¬»ƒ ‘ќ–ћџ
+    ћодифицироватьЎаблон_‘реймы–аздел1(false);
+    ћодифицироватьЎаблон_‘реймы–аздел2(false);
+    ћодифицироватьЎаблон_‘реймы–аздел3(false);
+  end;
+
+  proc ћодифицироватьЎаблон_‘реймы–аздел1(локќбновитьЌавигатор: logical);
+    картЎаблона_–аздел1.Filter = 'ф—»о«ѕ=' + Str(Self.Record);
+    if (картЎаблона_–аздел1.ColumnsCount = 0):
+      картЎаблона_–аздел1.Font.Size = Ѕиблиотека—тилей.StyleByName('“екст шаблона').Font.Size;
+      картЎаблона_–аздел1.Font.Bold = true;
+      картЎаблона_–аздел1.Align = true;
+      -- столбцы --
+      --ƒобавить—толбец артотеки_–аздел1_ Ѕ ;
+      --ƒобавить—толбец артотеки_–аздел1_—умЌал”д;
+      --ƒобавить—толбец артотеки_–аздел1_—умЌал¬оз;
+    fi;
+  end;
+
+  proc ћодифицироватьЎаблон_‘реймы–аздел2(локќбновитьЌавигатор: logical);
+    картЎаблона_–аздел2.Filter = 'ф—»о«ѕ=' + Str(Self.Record);
+    if (картЎаблона_–аздел2.ColumnsCount = 0):
+      картЎаблона_–аздел2.Font.Size = Ѕиблиотека—тилей.StyleByName('“екст шаблона').Font.Size;
+      картЎаблона_–аздел2.Font.Bold = true;
+      картЎаблона_–аздел2.Align = true;
+      -- столбцы --
+    fi;
+  end;
+
+  proc ћодифицироватьЎаблон_‘реймы–аздел3(локќбновитьЌавигатор: logical);
+    картЎаблона_–аздел3.Filter = 'ф—»о«ѕ=' + Str(Self.Record);
+    if (картЎаблона_–аздел3.ColumnsCount = 0):
+      картЎаблона_–аздел3.Font.Size = Ѕиблиотека—тилей.StyleByName('“екст шаблона').Font.Size;
+      картЎаблона_–аздел3.Font.Bold = true;
+      картЎаблона_–аздел3.Align = true;
+      -- столбцы --
+    fi;
+  end;
+
+  proc »зменитьЌадпись“екущего‘рейма (locGridItem: GridItem);
+    var locGridValue: Variant[];
+    var locFrameName, locParentFrameName: string;
+    locGridValue = locGridItem.Value as Variant[];
+    locFrameName = locGridValue[2] as String;
+    locParentFrameName = locGridValue[3] as String;
+    if    'фрейм–аздел1'     in [locFrameName,locParentFrameName]: Ќадпись“екущего‘рейма = '—ведени€ о заработной плате работников';
+    elsif 'фрейм–аздел2'     in [locFrameName,locParentFrameName]: Ќадпись“екущего‘рейма = '—ведени€ о фонде заработной платы';
+    elsif 'фрейм–аздел3'     in [locFrameName,locParentFrameName]: Ќадпись“екущего‘рейма = '—ведени€ о заработной плате руководителей, заместителей руководителей и главного бухгалтера учреждени€';
+    else
+      inherited »зменитьЌадпись“екущего‘рейма(locGridItem);
+    fi;
+  end;
+
+
+  -- ввод / вывод в клетках
+
+  func ѕолучить«аголовокќкна: string;
+    var aTxt: string[];
+    AddsInArray(aTxt, ѕолучить«аголовокќкна_—тандартна€„асть);
+    AddsInArray(aTxt, ѕолучить«аголовокќкна_—ведени€ќѕериоде);
+    Return ћассив—трок¬“екст(aTxt);
+  end;
+
+  func ѕолучить«аголовокќкна_—тандартна€„асть: string[];
+    Result[1] = if( (Ќаше”чреждение = nil), '<b->Ќалоговый агент не указан', '<b->' + Ќаше”чреждение.»м€);
+    Result[2] = '<b+>' + '—бор информации о заработной плате работников государственных и муниципальных учреждений';
+  end;
+
+  func ѕолучить«аголовокќкна_—ведени€ќѕериоде: string[];
+    var лок¬веденныеќтчетныеѕериоды: “ЅЅ_Ѕазовый.—правочники.ѕериоды–асчета[];
+    var i: integer;
+    var aTxt: string[];
+    лок¬веденныеќтчетныеѕериоды = ReadStructField(ѕериод_—«ѕ) as “ЅЅ_Ѕазовый.—правочники.ѕериоды–асчета[];
+    for i = 1 .. LengthOfArray(лок¬веденныеќтчетныеѕериоды) do
+      if (лок¬веденныеќтчетныеѕериоды[i] <> nil):
+        AddInArray(aTxt, лок¬веденныеќтчетныеѕериоды[i].»м€);
+      fi;
+    od;
+    if LengthOfArray(лок¬веденныеќтчетныеѕериоды) = 0:
+      Result[1] = '<b+>ќтчетный период: Ќ≈ ” ј«јЌ';
+    elsif LengthOfArray(лок¬веденныеќтчетныеѕериоды) = 1:
+      Result[1] = '<b+>ќтчетный период:<b-> ' + aTxt[1];
+    elsif LengthOfArray(лок¬веденныеќтчетныеѕериоды) > 1:
+      Result[1] = '<b+>ќтчетные периоды:<b-> ' + “ЅЅ_Ѕазовый.—троковые‘ункции.ћассив—трок¬—троку(aTxt, false, ', ');
+    fi;
+  end;
+
+  func ƒобавитьќтчетныйћес€ц: string;
+    var locValue: string;
+    var locValArray: string[2];
+    var локќтчетныйѕериод: “ЅЅ_Ѕазовый.—правочники.ѕериоды–асчета;
+    var лок¬веденныеќтчетныеѕериоды: “ЅЅ_Ѕазовый.—правочники.ѕериоды–асчета[];
+    with “ЅЅ_ќтчетность. онстанты do
+      locValArray= [[“ипѕериодаћес€ц01, '€нварь'], [“ипѕериодаћес€ц02, 'февраль'], [“ипѕериодаћес€ц03, 'март'],
+                    [“ипѕериодаћес€ц04, 'апрель'], [“ипѕериодаћес€ц05, 'май'],     [“ипѕериодаћес€ц06, 'июнь'],
+                    [“ипѕериодаћес€ц07, 'июль'],   [“ипѕериодаћес€ц08, 'август'],  [“ипѕериодаћес€ц09, 'сент€брь'],
+                    [“ипѕериодаћес€ц10, 'окт€брь'],[“ипѕериодаћес€ц11, 'но€брь'],  [“ипѕериодаћес€ц12, 'декабрь']];
+    end;
+    if CmOk = “ЅЅ_ќтчетность.Ѕиблио.¬ыборќтчетногоѕериода(locValue, locValArray, ƒатаЌачалајктуальности, ƒатаќкончани€јктуальности, false):
+      локќтчетныйѕериод = Ѕюджет_ѕерсонал. алендарь.ѕериодѕо оду(locValue);
+      лок¬веденныеќтчетныеѕериоды = ReadStructField(ѕериод_—«ѕ) as “ЅЅ_Ѕазовый.—правочники.ѕериоды–асчета[];
+      if (локќтчетныйѕериод <> nil) and (not локќтчетныйѕериод in лок¬веденныеќтчетныеѕериоды):
+        ѕериод_—«ѕ[ѕериод_—«ѕ.Add] = локќтчетныйѕериод;
+      else
+        DisplayMessage('¬ыбран недопустимый период. ¬озможно, выбранный период уже есть в списке отченых перииодов.');
+      fi;
+    fi;
+  end;
+
+  func ƒобавитьќтчетный√од (locStb: Subtable): string;
+    var locValue: string;
+    var locValArray: string[2];
+    var локќтчетныйѕериод: “ЅЅ_Ѕазовый.—правочники.ѕериоды–асчета;
+    var лок¬веденныеќтчетныеѕериоды: “ЅЅ_Ѕазовый.—правочники.ѕериоды–асчета[];
+    with “ЅЅ_ќтчетность. онстанты do
+      locValArray= [[“ипѕериода√од]];
+    end;
+    if CmOk = “ЅЅ_ќтчетность.Ѕиблио.¬ыборќтчетногоѕериода(locValue, locValArray, ƒатаЌачалајктуальности, ƒатаќкончани€јктуальности, false):
+      локќтчетныйѕериод = Ѕюджет_ѕерсонал. алендарь.ѕериодѕо оду(locValue);
+      лок¬веденныеќтчетныеѕериоды = ReadStructField(locStb) as “ЅЅ_Ѕазовый.—правочники.ѕериоды–асчета[];
+      if (локќтчетныйѕериод <> nil) and (not локќтчетныйѕериод in лок¬веденныеќтчетныеѕериоды):
+        locStb[locStb.Add] = локќтчетныйѕериод;
+      else
+        DisplayMessage('¬ыбран недопустимый период. ¬озможно, выбранный период уже есть в списке отченых перииодов.');
+      fi;
+    fi;
+  end;
+
+  func ¬ывестиќтчетныйѕериод (Cell: TemplateCell): string;
+    if (Cell.Frame > 0) and (Cell.Frame <= Cell.Owner.Subtable.Count):
+      if (Cell.Owner.Subtable.Items[Cell.Frame] <> nil):
+        Return (Cell.Owner.Subtable.Items[Cell.Frame] as “ЅЅ_Ѕазовый.—правочники.ѕериоды–асчета).»м€;
+      fi;
+    fi;
+  end;
+
+  proc ”далитьќтчетныйѕериод (Cell: TemplateCell);
+    var index: integer;
+    index = Cell.Frame;
+    if (index > 0) and (index <= Cell.Owner.Subtable.Count):
+      Cell.Owner.Subtable.Delete(index);
+    fi;
+  end;
+
+
+  -- разное --
+
+  proc »зменить—ервисные оманды (locGridItem: GridItem);
+--    var locGridValue: Variant[];
+--    var locFrameName, locParentFrameName: string;
+--    --
+--    кнƒобавить—траницу.Enabled = false;
+--    кнƒобавить—траницу.Caption = ' ';
+--    кнƒобавить—траницу.Font.Bold = false;
+--    кнƒобавить—траницу.Hint = '';
+--    кнƒобавить—траницу.OnClick = '';
+--    --
+--    кн—оздать‘айл.Enabled = false;
+--    кн—оздать‘айл.Caption = ' ';
+--    кн—оздать‘айл.Hint = '';
+--    кн—оздать‘айл.OnClick = '';
+--    --
+--    кнѕечать.Enabled = false;
+--    кнѕечать.Caption = ' ';
+--    кнѕечать.Hint = '';
+--    кнѕечать.OnClick = '';
+--    --
+--    locGridValue = locGridItem.Value as Variant[];
+--    locFrameName = locGridValue[2] as String;
+--    locParentFrameName = locGridValue[3] as String;
+--    if ('фрейм–еквизитыќтчета' in [locFrameName,locParentFrameName]):
+--      кнƒобавить—траницу.Caption = '–асчет';
+--      кнƒобавить—траницу.Enabled = true;
+--      кнƒобавить—траницу.Font.Bold = true;
+--      кнƒобавить—траницу.Hint = 'јвтоматическое заполнение формы';
+--      кнƒобавить—траницу.OnClick = 'кнѕриЌажатии_–асчет';
+--      --
+--      кн—оздать‘айл.Enabled = true;
+--      кн—оздать‘айл.Caption = '—оздать файл';
+--      кн—оздать‘айл.Hint = '—оздать транзитный файл в формате .XML';
+--      кн—оздать‘айл.OnClick = 'кнѕриЌажатии_XML';
+--      --
+--      кнѕечать.Enabled = true;
+--      кнѕечать.Caption = 'ѕечать';
+--      кнѕечать.Hint = 'ѕечать с бар-кодом';
+--      кнѕечать.OnClick = 'кнѕриЌажатии_ѕечать';
+--    elsif ('фрейм–аздел1' in [locFrameName,locParentFrameName]):
+--      кнƒобавить—траницу.Caption = 'ƒобавить  Ѕ ';
+--      кнƒобавить—траницу.Enabled = true;
+--      кнƒобавить—траницу.Hint = 'ƒобавить вкладной лист р.1';
+--      кнƒобавить—траницу.OnClick = 'кнѕриЌажатии_ƒобавить—траницу';
+--    elsif ('фрейм–аздел2' in [locFrameName,locParentFrameName]):
+--      кнƒобавить—траницу.Caption = 'ƒобавить ставку';
+--      кнƒобавить—траницу.Enabled = true;
+--      кнƒобавить—траницу.Hint = 'ƒобавить вкладной лист р.2';
+--      кнƒобавить—траницу.OnClick = 'кнѕриЌажатии_ƒобавить—траницу';
+--    elsif ('фреймѕриложение1' in [locFrameName,locParentFrameName]):
+--      кнƒобавить—траницу.Caption = 'ƒобавить справку';
+--      кнƒобавить—траницу.Enabled = true;
+--      кнƒобавить—траницу.Hint = 'ƒобавить справку о доходах';
+--      кнƒобавить—траницу.OnClick = 'кнѕриЌажатии_ƒобавить—траницу';
+--    fi;
+  end;
+
+
+
+end

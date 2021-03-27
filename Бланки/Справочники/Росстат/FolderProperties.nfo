@@ -1,4 +1,6 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<Properties Version="1">
-  <Property Name="Title" Value="Классы форм справочников Росстата"/>
-</Properties>
+<Properties Version="1"/>
+<Items>
+  <Item Name="редКТО"/>
+  <Item Name="редККПА"/>
+</Items>

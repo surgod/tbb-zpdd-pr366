@@ -1,4 +1,6 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<Properties Version="1">
-  <Property Name="Title" Value="Классы картотек справочников Росстата"/>
-</Properties>
+<Properties Version="1"/>
+<Items>
+  <Item Name="картКТО"/>
+  <Item Name="картККПА"/>
+</Items>
