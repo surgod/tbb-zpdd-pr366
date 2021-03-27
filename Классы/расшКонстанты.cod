@@ -1,0 +1,24 @@
+extends Константы;
+
+inclass public
+
+  var ДопустимыеОКФС: variant[2] := ПолучитьДопустимыеОКФС;
+
+inclass private
+
+  func ПолучитьДопустимыеОКФС: variant[2];
+    var locValue: variant[];
+    with Query.Create([Базовый.Классификаторы.ОКФС]) do
+      Filter = 'Код in ["12","13","14"]';
+      Order = 'Код';
+      Select;
+      while not Eof do
+        locValue[1] = Current.Код;
+        locValue[2] = '[' + Current.Код + ']  ' + Current.Имя;
+        СИС2.Функции.AddInArray(Result, locValue);
+        Next;
+      od;
+    end;
+  end;
+
+end

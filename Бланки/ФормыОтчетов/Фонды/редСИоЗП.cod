@@ -46,6 +46,8 @@ inobject private
       Row[1].Height = 5.8;
       CellByField['НадписьТекущегоФрейма'].Font.Size = 10;
     end;
+    -- Обновление списков перечислимых полей --
+    ОбновитьСписокПоля(Template.CellByField['ОКФС'], Константы.ДопустимыеОКФС);
   end;
 
   proc шаблон_ПриОткрытии (Create: Logical);
@@ -78,7 +80,7 @@ inobject private
   end;
 
   func Поле_ПриВходе(Cell :TemplateCell; Index :Integer; Action :Template.EnterTypes) :Logical;
-    if (Cell.Contents = 'ОтчетныйПериод'):
+    if (Cell.Contents = 'КТО'): ИзменитьТипОрганизации(Action);
       
     fi;
   end;
@@ -87,6 +89,7 @@ inobject private
     if (Cell.Contents = 'Период') and (Cell.Owner.Name = 'секцПериод_СЗП'):       Return ВывестиОтчетныйПериод(Cell);
     elsif (Cell.Contents = 'Период') and (Cell.Owner.Name = 'секцПериод_ФондЗП'): Return ВывестиОтчетныйПериод(Cell);
     elsif (Cell.Contents = 'Период') and (Cell.Owner.Name = 'секцПериод_СЗПРук'): Return ВывестиОтчетныйПериод(Cell);
+    elsif (Cell.Contents = 'КТО'): Return ВывестиТипОрганизации;
 
 
     fi;
@@ -262,7 +265,31 @@ inobject private
     fi;
   end;
 
+  proc ИзменитьТипОрганизации (Action :Template.EnterTypes);
+    var locRecord :Справочники.Росстат.КТО;
+    if (Action = Template.Clear):
+      КТО = nil;
+    else
+      locRecord = QueryRecord(Справочники.Росстат.КТО, 'Код="' +  КТО + '"');
+      if cmOk = Справочники.Росстат.картКТО.ВыполнитьВыбор(locRecord):
+        КТО = locRecord.Код;
+      fi;
+    fi;
+  end;
 
+  func ВывестиТипОрганизации: string;
+    var locRecord :Справочники.Росстат.КТО;
+    if (КТО <> nil):
+      locRecord = QueryRecord(Справочники.Росстат.КТО, 'Код="' +  КТО + '"');
+      if (locRecord <> nil):
+        Return '[' + locRecord.Код + '] ' + locRecord.Имя;
+      fi;
+    fi;
+  end;
+
+
+
+  --
   -- разное --
 
   proc ИзменитьСервисныеКоманды (locGridItem: GridItem);

@@ -12,6 +12,15 @@ inclass private
 
 inclass public
 
+  func ВыполнитьВыбор (var локРезультатВыбора: Справочники.Росстат.КТО): Integer;
+    var locForm: Справочники.Росстат.картКТО;
+    locForm = Справочники.Росстат.картКТО.Create;
+    if CmOk = locForm.ShowEx(локРезультатВыбора, nil, Kernel.Window.ModalWindow):
+      Return CmOk;
+    fi;
+  end;
+
+
 --2_ Обработчики событий шаблона0. --
 
 inobject private
