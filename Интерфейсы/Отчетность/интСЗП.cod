@@ -1,0 +1,85 @@
+class inherited МашинаРеквизитов.Базовые.интЗапись "";
+
+inclass public
+
+  func СвязанныйКлассЗаписей: class СИС2.Базовая.БазоваяЗапись;
+    Result = Отчетность.СИоЗП_СЗП;
+  end;
+
+  func Create: Отчетность.интСЗП;
+    Result = inherited Create;
+    Result.SetRecord(Отчетность.СИоЗП_СЗП.Create);
+  end;
+
+  func CreateByOwner(locOwnerRecord: Отчетность.СИоЗП;
+                     локПериод: ТББ_Базовый.Справочники.ПериодыРасчета;
+                     локНазначение  :Бюджет_Персонал.АтрибутыСотрудника.Назначение;
+                     withMsg: logical = false): Отчетность.интСЗП;
+    var locMsg: string;
+    var aFlt: string[];
+    var locFlt: string;
+    var locRecord: Отчетность.СИоЗП_СЗП;
+    -- Создание новой записи или добавленние должности в существующую
+    -- Поиск существующей записи
+    aFlt[1] = 'фСИоЗП=' + Str(locOwnerRecord);
+    aFlt[2] = 'ОтчетныйПериод=' + Str(локПериод);
+    aFlt[3] = 'Работник=' + Str(локНазначение.Сотрудник.ФизЛицо);
+    locFlt = ТББ_Базовый.Фильтры.СложитьСтрокиФильтраПоИ(aFlt);
+    locRecord = СИС2.ФункцииДокумента.QueryRecord(Отчетность.СИоЗП_СЗП, locFlt);
+    if (locRecord <> nil): -- запись существует
+      with locRecord.СЗПД.AddEx do
+        Назначение = локНазначение;
+        if withMsg:
+          locMsg = 'Должность "' + локНазначение.Должность.Имя + ' добавлена в отчетную карточку сотрудника ' + локНазначение.Сотрудник.Физлицо.Имя + '.';
+          ТББ_Базовый.Console.Message(locMsg);
+        fi;
+        СИС2.ФункцииДокумента.RecordPostIfNeed(locRecord);
+        Return OpenRecord(locRecord);
+      end;
+    else
+      Result = Self.Create;
+      Result.Record.фСИоЗП = locOwnerRecord;
+      Result.Record.ОтчетныйПериод = локПериод;
+      Result.Record.Работник = локНазначение.Сотрудник.Физлицо;
+      Result.Record.Post;
+      with Result.Record.СЗПД.AddEx do
+        Назначение = локНазначение;
+        if withMsg:
+          locMsg = 'Создана отчетная карточка сотрудника ' + локНазначение.Сотрудник.Физлицо.Имя + '.';
+          ТББ_Базовый.Console.Message(locMsg);
+        fi;
+        СИС2.ФункцииДокумента.RecordPostIfNeed(Result.Record);
+      end;
+    fi;
+  end;
+
+
+  func ОткрытьПоЗаписи synonym OpenRecord (locRecord: Отчетность.СИоЗП_СЗП): Отчетность.интСЗП;
+    Result = FindInterfaceByRecord(locRecord);
+    if (Result = nil):
+      Result = inherited Create;
+      Result.SetRecord(locRecord);
+    fi;
+  end;
+
+  func БланкРедакторПоУмолчанию: class BlankForm;
+    Result = ФормыОтчетов.Фонды.редСЗП;
+  end;
+
+  func КартотекаПоУмолчанию: class CardForm;
+    --Result = Отчетность.картСИоЗП;
+  end;
+
+
+inobject public
+
+  Record: Отчетность.СИоЗП_СЗП;
+
+inobject private
+
+  --@doc Эта процедура наследует МР; На нее завязано изменение поля Record во всех методах интерфейса;
+  proc SetRecord (locRecord: Отчетность.СИоЗП_СЗП);
+    Inherited SetRecord(locRecord);
+  end;
+
+end

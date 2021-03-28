@@ -20,11 +20,11 @@ inclass public
   end;
 
   func Ѕланк–едакторѕо”молчанию: class BlankForm;
-    --Result = ‘ормыќтчетов.‘онды.ред—»о«ѕ;
+    Result = ‘ормыќтчетов.‘онды.ред—»о«ѕ;
   end;
 
   func  артотекаѕо”молчанию: class CardForm;
-    --Result = ќтчетность.карт—»о«ѕ;
+    Result = ќтчетность.карт—»о«ѕ;
   end;
 
 

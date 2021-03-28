@@ -1,0 +1,149 @@
+Class inherited СИС2.БазовыйБланк "Включать в отчет" ;
+
+--{{ Свойства
+
+inobject private
+
+  секцПозиция_Заголовок :TemplateSection;
+  секцПозиция :TemplateSection;
+
+  var ЗаписьОтчета    :Отчетность.СИоЗП;
+  var Сотрудник       :Базовый.Данные.Субъект;
+  var Период          :ТББ_Базовый.Справочники.ПериодыРасчета[];
+
+  var OnOff           :logical[]; -- Признак включения позиции в отчет
+  var Position        :storage[]; -- Хранилище включает в себя инфолрмацию о назначении и отчетном месяце
+
+  var УточнениеНеТребуется: logical;
+  var НетНазначений: logical;
+
+--}}
+
+-- _Конструкторы, визуализаторы. --
+
+inclass public
+
+  func УточнитьДобавляемыеДанные (локЗаписьОтчета: Отчетность.СИоЗП; локСотрудник:Базовый.Данные.Субъект;
+                                  локПериодОтчета :ТББ_Базовый.Справочники.ПериодыРасчета[];
+                                  var newPosition :storage[]): integer;
+    var locFrm: Служебные.СИоЗП.блУточнениеСЗП;
+    var j: integer;
+    locFrm = Служебные.СИоЗП.блУточнениеСЗП.Create;
+    locFrm.ЗаписьОтчета = локЗаписьОтчета;
+    locFrm.Сотрудник = локСотрудник;
+    locFrm.Период = локПериодОтчета;
+    locFrm.ПодготовитьФорму;
+    if locFrm.НетНазначений:
+      DisplayMessage('Для выбранных периодов отчета нет назначений сотрудника ' + локСотрудник.Имя + ' на основную должность.');
+     else
+       if (locFrm.УточнениеНеТребуется):
+         newPosition = locFrm.Position;
+         Return cmOk;
+       else
+          if (cmOk = locFrm.ShowEx(, Kernel.Window.ModalWindow)):
+            for j = 1 .. LengthOfArray(locFrm.Position) do
+              if (locFrm.OnOff[j]):
+                СИС2.Функции.AddInArray(newPosition, locFrm.Position[j]);
+              fi;
+            od;
+            Return cmOk;
+          fi;
+       fi;
+    fi;
+  end;
+
+inobject private
+
+-- _Обработчики событий шаблона. --
+
+  proc шаблон_ПриОткрытии(Create :Logical);
+    секцПозиция.FramesCount    = LengthOfArray(Position);
+    inherited шаблон_ПриОткрытии(Create);
+  end;
+
+-- _Обработчики событий клеток шаблона. --
+
+  func Поле_ПриВыводе (Cell: TemplateCell; Value: Variant; Action: Template.OutputTypes; var Format: String): Variant;
+    if (Cell.Contents = 'Период'):        Return ОписаниеПериода(Position[Cell.Frame]);
+    elsif (Cell.Contents = 'Назначение'): Return ОписаниеДолжности(Position[Cell.Frame]);
+    fi;
+  end;
+
+  func Поле_ПриВыводе_ЗаголовокОкнаФормы(Cell :TemplateCell; Value :Variant; Action :Template.OutputTypes; var Format :String) :Variant;
+    Return Сотрудник.Имя;
+  end;
+
+-- _Обработчики событий прочих объектов шаблона. --
+
+  proc кнОтметитьВсе_ПриНажатии(Sender :Button);
+    var j: integer;
+    for j = 1 .. LengthOfArray(Position) do
+      OnOff[j] = true;
+    od;
+  end;
+
+-- _Дополнительные команды. --
+
+-- _Вспомогательные методы. --
+
+inobject private
+
+  proc ПодготовитьФорму;
+    var i, p, j: integer;
+    var локНазначения  :Бюджет_Персонал.АтрибутыСотрудника.Назначение[];
+    var локНазначение  :Бюджет_Персонал.АтрибутыСотрудника.Назначение;
+    var локПериод: ТББ_Базовый.Справочники.ПериодыРасчета;
+    var locStorage: Storage;
+    for p = 1 .. LengthOfArray(Период) do
+      локНазначения = Бюджет_Персонал.Библио.АктуальныеНазначения(Сотрудник, , , Период[p].ДатаНачала, Период[p].ДатаОкончания);
+      for i = 1 .. LengthOfArray(локНазначения) do
+        locStorage = Storage.Create;
+        locStorage.Период = Период[p];
+        locStorage.Назначение = локНазначения[i];
+        СИС2.Функции.AddInArray(Position, locStorage);
+      od;
+    od;
+    for j = 1 .. LengthOfArray(Position) do
+      locStorage = Position[j];
+      локНазначение = locStorage.Назначение as Бюджет_Персонал.АтрибутыСотрудника.Назначение;
+      локПериод     = locStorage.Период as ТББ_Базовый.Справочники.ПериодыРасчета;
+      OnOff[j]      = not ДанныеЕстьВОтчете(локНазначение, локПериод);
+    od;
+    НетНазначений = (LengthOfArray(Position) = 0);
+    УточнениеНеТребуется = (LengthOfArray(Position) = 1) and (OnOff[1] = true);
+  end;
+
+  func ОписаниеПериода (locStorage: Storage): string;
+    if (locStorage <> nil):
+      if (locStorage.Период <> nil):
+        Return (locStorage.Период as ТББ_Базовый.Справочники.ПериодыРасчета).Имя;
+      fi;
+    fi;
+  end;
+
+  func ОписаниеДолжности  (locStorage: Storage): string;--(локНазначение: Бюджет_Персонал.АтрибутыСотрудника.Назначение): string;
+    var локНазначение: Бюджет_Персонал.АтрибутыСотрудника.Назначение;
+    var интНазначение: Бюджет_Персонал.АтрибутыСубъекта.интНазначение;
+    if (locStorage <> nil):
+      if (locStorage.Назначение <> nil):
+        локНазначение = locStorage.Назначение as Бюджет_Персонал.АтрибутыСотрудника.Назначение;
+        Result = локНазначение.Должность.Имя;
+        интНазначение = Бюджет_Персонал.АтрибутыСубъекта.интНазначение.OpenRecord(локНазначение);
+        Return Result + ' <i>(' + интНазначение.ОписаниеПодразделения + ')';
+      fi;
+    fi;
+  end;
+
+  func ДанныеЕстьВОтчете (локНазначение  :Бюджет_Персонал.АтрибутыСотрудника.Назначение; локПериод: ТББ_Базовый.Справочники.ПериодыРасчета): logical;
+    var aFlt: string[];
+    with Query.Create([Бюджет_ЗПиДД_ПР366.Отчетность.СИоЗП_СЗП]) do
+      aFlt[1] = 'фСИоЗП=' + Str(ЗаписьОтчета);
+      aFlt[2] = 'ОтчетныйПериод=' + Str(локПериод);
+      aFlt[3] = 'Работник=' + Str(локНазначение.Сотрудник.ФизЛицо);
+      aFlt[4] = 'СЗПД.Exists(Назначение=' + Str(локНазначение) + ')';
+      Filter = ТББ_Базовый.Фильтры.СложитьСтрокиФильтраПоИ(aFlt);
+      Return RecordsExists;
+    end;
+  end;
+
+end

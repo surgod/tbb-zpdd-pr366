@@ -1,0 +1,54 @@
+Class inherited МашинаРеквизитов.Базовые.блРедакторСИнтерфейсом "Сведения о заработной плате" , editor Отчетность.СИоЗП_СЗП;
+import СИС2 classes Функции, СтроковыеФункции;
+
+inclass public
+inobject private
+
+--{{ Свойства
+
+--}}
+
+-- _Конструкторы, визуализаторы. --
+
+-- _Обработчики событий шаблона. --
+
+inobject private
+
+-- _Обработчики событий клеток шаблона. --
+
+inobject private
+
+  func Поле_ПриВыводе (Cell :TemplateCell; Value :Variant; Action :Template.OutputTypes; var Format :String) :Variant;
+    if (Cell.Contents = 'Назначение'):
+      if (Cell.Frame > 0) and (Cell.Frame <= Record.СЗПД.Count):
+        Return ОписаниеДолжности(Record.СЗПД[Cell.Frame].Назначение);
+      fi;
+    fi;
+  end;
+
+
+  func Поле_ПриВыводе__.ЗаголовокОкнаФормы(Cell :TemplateCell; Value :Variant; Action :Template.OutputTypes; var Format :String) :Variant;
+    var aTxt: string[];
+    if (Работник <> nil):
+      AddInArray(aTxt, Работник.Наим);
+    fi;
+    if (ОтчетныйПериод <> nil):
+      AddInArray(aTxt, '<b->' + ОтчетныйПериод.Имя);
+    fi;
+    Return МассивСтрокВТекст(aTxt);
+  end;
+
+-- _Обработчики событий прочих объектов шаблона. --
+
+-- _Дополнительные команды. --
+
+-- _Вспомогательные методы.  --
+
+  func ОписаниеДолжности (локНазначение: Бюджет_Персонал.АтрибутыСотрудника.Назначение): string;
+    var интНазначение: Бюджет_Персонал.АтрибутыСубъекта.интНазначение;
+    Result = локНазначение.Должность.Имя;
+    интНазначение = Бюджет_Персонал.АтрибутыСубъекта.интНазначение.OpenRecord(локНазначение);
+    Return Result + ' <i>(' + интНазначение.ОписаниеПодразделения + ')';
+  end;
+
+end

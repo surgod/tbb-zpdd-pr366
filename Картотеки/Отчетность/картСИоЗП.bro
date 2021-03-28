@@ -10,7 +10,7 @@ OnModify=картотека_ПриИзменении
 CanMove=0
 ColumnCount=2
 Column:0=НашеУчреждение.Имя
-Column:1=ОтчетныйПериод.Код
+Column:1=ОтчетныйПериод
 TreeWidth=120
 SubTableWidth=100
 SubTableHeight=100
@@ -19,8 +19,9 @@ SubTableHeight=100
 Caption=Учреждение
 Width=0
 
-[.Column.ОтчетныйПериод.Код]
-Caption=Отчетный период (код)
+[.Column.ОтчетныйПериод]
+Caption=Отчетный период
 Width=150
 MinWidth=150
 Alignment=2
+ColumnType=1

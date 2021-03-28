@@ -1,6 +1,6 @@
 Class inherited МашинаРеквизитов.Базовые.блРедакторСИнтерфейсом "Форма СИоЗП" , editor Отчетность.СИоЗП;
 
-import СИС2 classes Функции, СтроковыеФункции, ФункцииДокумента;
+import СИС2 classes Константы, Функции, СтроковыеФункции, ФункцииДокумента;
 import ТББ_Отчетность classes CheckXml;
 
 --{{ 2_Свойства
@@ -114,6 +114,25 @@ inobject private
     Template.EndModify;
   end;
 
+  proc кнПриНажатии_ДобавитьСведения (Sender: Button);
+    var locGridValue: Variant[];
+    var locGridName, locFrameName, locParentFrameName: string;
+    if (тблНавигаторФреймов.Current <> nil):
+      locGridValue = тблНавигаторФреймов.Current.Value as Variant[];
+      locGridName = locGridValue[1] as String;
+      locFrameName = locGridValue[2] as String;
+      locParentFrameName = locGridValue[3] as String;
+      if (locGridName = 'Раздел 1') or (Pos('Раздел1', locFrameName) > 0) or (Pos('Раздел1', locParentFrameName) > 0):
+        ДобавитьСведения_Раздел1;
+      elsif (locGridName = 'Раздел 2') or (Pos('Раздел2', locFrameName) > 0) or (Pos('Раздел2', locParentFrameName) > 0):
+        --ДобавитьСведения_Раздел2;
+      elsif (locGridName = 'Раздел 3') or (Pos('Раздел3', locFrameName) > 0) or (Pos('Раздел3', locParentFrameName) > 0):
+        --ДобавитьСведения_Раздел3;
+      fi;
+    fi;
+  end;
+
+
 
 -- 2_Дополнительные команды0. --
 
@@ -133,8 +152,12 @@ inobject private
       картШаблона_Раздел1.Font.Size = БиблиотекаСтилей.StyleByName('Текст шаблона').Font.Size;
       картШаблона_Раздел1.Font.Bold = true;
       картШаблона_Раздел1.Align = true;
+      картШаблона_Раздел1.Order = 'Работник.ФамилияФизлица;ОтчетныйПериод.Код';
       -- столбцы --
-      --ДобавитьСтолбецКартотеки_Раздел1_КБК;
+      ДобавитьСтолбецКартотеки_Раздел1_Работник_Фамилия;
+      ДобавитьСтолбецКартотеки_Раздел1_Работник_Имя;
+      ДобавитьСтолбецКартотеки_Раздел1_Работник_Отчество;
+      ДобавитьСтолбецКартотеки_Раздел1_ОтчетныйПериод;
       --ДобавитьСтолбецКартотеки_Раздел1_СумНалУд;
       --ДобавитьСтолбецКартотеки_Раздел1_СумНалВоз;
     fi;
@@ -175,7 +198,73 @@ inobject private
   end;
 
 
-  -- ввод / вывод в клетках
+  proc ДобавитьСтолбецКартотеки_Раздел1_Работник_Фамилия;
+    var locOwner: TemplateCardfile;
+    locOwner = картШаблона_Раздел1;
+    with locOwner.AddColumn do
+      FieldName = 'Работник.ФамилияФизлица';
+      Caption = 'Фамилия';
+      Hint = '';
+      Width = 0;
+      MinWidth = 60;
+      Alignment = Template.LeftAlign;
+      FieldType = Template.ReferenceField;
+      Font.Size = locOwner.Font.Size;
+      Font.Color = clGray;
+    end;
+  end;
+
+  proc ДобавитьСтолбецКартотеки_Раздел1_Работник_Имя;
+    var locOwner: TemplateCardfile;
+    locOwner = картШаблона_Раздел1;
+    with locOwner.AddColumn do
+      FieldName = 'Работник.ИмяФизлица';
+      Caption = 'Фамилия';
+      Hint = '';
+      Width = 0;
+      MinWidth = 60;
+      Alignment = Template.LeftAlign;
+      FieldType = Template.ReferenceField;
+      Font.Size = locOwner.Font.Size;
+      Font.Color = clGray;
+    end;
+  end;
+
+  proc ДобавитьСтолбецКартотеки_Раздел1_Работник_Отчество;
+    var locOwner: TemplateCardfile;
+    locOwner = картШаблона_Раздел1;
+    with locOwner.AddColumn do
+      FieldName = 'Работник.ОтчествоФизлица';
+      Caption = 'Фамилия';
+      Hint = '';
+      Width = 0;
+      MinWidth = 60;
+      Alignment = Template.LeftAlign;
+      FieldType = Template.ReferenceField;
+      Font.Size = locOwner.Font.Size;
+      Font.Color = clGray;
+    end;
+  end;
+
+  proc ДобавитьСтолбецКартотеки_Раздел1_ОтчетныйПериод;
+    var locOwner: TemplateCardfile;
+    locOwner = картШаблона_Раздел1;
+    with locOwner.AddColumn do
+      FieldName = 'ОтчетныйПериод.Имя';
+      Caption = 'Отчетный период';
+      Hint = '';
+      Width = 0;
+      MinWidth = 60;
+      Alignment = Template.LeftAlign;
+      FieldType = Template.ReferenceField;
+      Font.Size = locOwner.Font.Size;
+      Font.Color = clGray;
+    end;
+  end;
+
+
+
+  -- ввод / вывод в клетках --
 
   func ПолучитьЗаголовокОкна: string;
     var aTxt: string[];
@@ -200,11 +289,11 @@ inobject private
       fi;
     od;
     if LengthOfArray(локВведенныеОтчетныеПериоды) = 0:
-      Result[1] = '<b+>Отчетный период: НЕ УКАЗАН';
+      Result[1] = '<s-><s-><b+>Отчетный период: НЕ УКАЗАН';
     elsif LengthOfArray(локВведенныеОтчетныеПериоды) = 1:
-      Result[1] = '<b+>Отчетный период:<b-> ' + aTxt[1];
+      Result[1] = '<s-><s-><b+>Отчетный период: ' + aTxt[1];
     elsif LengthOfArray(локВведенныеОтчетныеПериоды) > 1:
-      Result[1] = '<b+>Отчетные периоды:<b-> ' + ТББ_Базовый.СтроковыеФункции.МассивСтрокВСтроку(aTxt, false, ', ');
+      Result[1] = '<s-><s-><b+>Отчетные периоды: ' + ТББ_Базовый.СтроковыеФункции.МассивСтрокВСтроку(aTxt, false, ', ', false);
     fi;
   end;
 
@@ -287,20 +376,87 @@ inobject private
     fi;
   end;
 
+  -- управление картотеками шаблона --
+
+
+  proc ДобавитьСведения_Раздел1;
+    var локДатаНачала, локДатаОкончания: date;
+    var локОтчетныеПериоды: ТББ_Базовый.Справочники.ПериодыРасчета[];
+    var мСотрудник: Базовый.Данные.Субъект[];
+    var f, p :integer;
+    var newPosition :storage[];
+    var интСЗП: Отчетность.интСЗП;
+    var locStorage :Storage;
+    var локПериод      :ТББ_Базовый.Справочники.ПериодыРасчета;
+    var локНазначение  :Бюджет_Персонал.АтрибутыСотрудника.Назначение;
+
+    ПолучитьГраницыПериодов_Раздел1(локДатаНачала, локДатаОкончания);
+    локОтчетныеПериоды = ReadStructField(Период_СЗП) as ТББ_Базовый.Справочники.ПериодыРасчета[];
+    if (CmOk = ТББ_Базовый.Справочники.Субъект.картСотрудник.ВыполнитьВыбор(мСотрудник, НашеУчреждение,,,,'not ЭтоОфицер')): -- сотрудник (сотрудники) выбраны
+      for f = 1 .. LengthOfArray(мСотрудник) do
+        if cmOk = Служебные.СИоЗП.блУточнениеСЗП.УточнитьДобавляемыеДанные(Self.Record, мСотрудник[f], локОтчетныеПериоды, newPosition):
+          for p = 1 .. LengthOfArray(newPosition) do
+            locStorage = newPosition[p];
+            локПериод     = locStorage.Период as ТББ_Базовый.Справочники.ПериодыРасчета;
+            локНазначение = locStorage.Назначение as Бюджет_Персонал.АтрибутыСотрудника.Назначение;
+            Отчетность.интСЗП.CreateByOwner(Self.Record, локПериод, локНазначение);
+          od;
+        fi;
+      od;
+    fi;
+  end;
+
+  proc ПолучитьГраницыПериодов_Раздел1 (var локДатаНачала, локДатаОкончания: date);
+    var i: integer;
+    for i = 1 .. Период_СЗП.Count do
+      if (Период_СЗП[i] <> nil):
+        if (локДатаНачала = nil):
+          локДатаНачала = Период_СЗП[i].ДатаНачала;
+        else
+          локДатаНачала = Min([локДатаНачала, Период_СЗП[i].ДатаНачала]);
+        fi;
+        локДатаОкончания = Max([локДатаОкончания, Период_СЗП[i].ДатаОкончания]);
+      fi;
+    od;
+  end;
+
+  func Выбрать_Сотрудников (var мСотрудник: Базовый.Данные.Субъект[]; var локДатаНачалаПериодаРасчета, локДатаОкончанияПериодаРасчета: date): integer;
+--    var локФильтрСотрудников: string;
+--    var локПериодНачислений: ТББ_Базовый.Справочники.ПериодыРасчета;
+--    var локГодСправочникаПериодов: integer;
+--    локФильтрСотрудников = ТББ_Базовый.Фильтры.СложитьСтрокиФильтраПоИ([ФильтрСотрудников_ПоХарактеристике,ФильтрСотрудников_ПоГруппеНачислений]);
+--    if (CmOk = ТББ_Базовый.Справочники.Субъект.картСотрудник.ВыполнитьВыбор(мСотрудник, НашеУчреждение, , , , локФильтрСотрудников)): -- сотрудник (сотрудники) выбраны
+--      локДатаОкончанияПериодаРасчета = Интерфейс.ПолучитьДату_ОкончанияПериодаРасчета;
+--      локПериодНачислений = Интерфейс.Получить_ПериодРасчета;-- предполагаемый расчетный период акта вычислений
+--      if СтрогоеСоответствие.РасчетныхПериодов:
+--        локДатаНачалаПериодаРасчета = локПериодНачислений.ДатаНачала; -- уточнение даты начала периода расчета
+--        локДатаОкончанияПериодаРасчета = локПериодНачислений.ДатаОкончания; -- уточнение даты окончания периода расчета
+--        Return CmOk;
+--      else
+--        локГодСправочникаПериодов = Year(локДатаОкончанияПериодаРасчета);
+--        if (CmOk = ТББ_Базовый.Справочники.картПериоды.ВыполнитьВыборМесяца(локПериодНачислений, локГодСправочникаПериодов, nil, 'Выбор месяца расчета')): -- месяц расчета выбран
+--          локДатаНачалаПериодаРасчета = локПериодНачислений.ДатаНачала; -- уточнение даты начала периода расчета
+--          локДатаОкончанияПериодаРасчета = локПериодНачислений.ДатаОкончания; -- уточнение даты окончания периода расчета
+--          Return CmOk;
+--        fi;
+--      fi;
+--    fi;
+  end;
+
 
 
   --
   -- разное --
 
   proc ИзменитьСервисныеКоманды (locGridItem: GridItem);
---    var locGridValue: Variant[];
---    var locFrameName, locParentFrameName: string;
---    --
---    кнДобавитьСтраницу.Enabled = false;
---    кнДобавитьСтраницу.Caption = ' ';
---    кнДобавитьСтраницу.Font.Bold = false;
---    кнДобавитьСтраницу.Hint = '';
---    кнДобавитьСтраницу.OnClick = '';
+    var locGridValue: Variant[];
+    var locFrameName, locParentFrameName: string;
+    --
+    кнДобавитьСтраницу.Enabled = false;
+    кнДобавитьСтраницу.Caption = ' ';
+    кнДобавитьСтраницу.Font.Bold = false;
+    кнДобавитьСтраницу.Hint = '';
+    кнДобавитьСтраницу.OnClick = '';
 --    --
 --    кнСоздатьФайл.Enabled = false;
 --    кнСоздатьФайл.Caption = ' ';
@@ -312,10 +468,10 @@ inobject private
 --    кнПечать.Hint = '';
 --    кнПечать.OnClick = '';
 --    --
---    locGridValue = locGridItem.Value as Variant[];
---    locFrameName = locGridValue[2] as String;
---    locParentFrameName = locGridValue[3] as String;
---    if ('фреймРеквизитыОтчета' in [locFrameName,locParentFrameName]):
+    locGridValue = locGridItem.Value as Variant[];
+    locFrameName = locGridValue[2] as String;
+    locParentFrameName = locGridValue[3] as String;
+    if ('фреймРеквизитыОтчета' in [locFrameName,locParentFrameName]):
 --      кнДобавитьСтраницу.Caption = 'Расчет';
 --      кнДобавитьСтраницу.Enabled = true;
 --      кнДобавитьСтраницу.Font.Bold = true;
@@ -331,22 +487,22 @@ inobject private
 --      кнПечать.Caption = 'Печать';
 --      кнПечать.Hint = 'Печать с бар-кодом';
 --      кнПечать.OnClick = 'кнПриНажатии_Печать';
---    elsif ('фреймРаздел1' in [locFrameName,locParentFrameName]):
---      кнДобавитьСтраницу.Caption = 'Добавить КБК';
---      кнДобавитьСтраницу.Enabled = true;
---      кнДобавитьСтраницу.Hint = 'Добавить вкладной лист р.1';
---      кнДобавитьСтраницу.OnClick = 'кнПриНажатии_ДобавитьСтраницу';
+    elsif ('фреймРаздел1' in [locFrameName,locParentFrameName]):
+      кнДобавитьСтраницу.Caption = 'Добавить сведения';
+      кнДобавитьСтраницу.Enabled = true;
+      кнДобавитьСтраницу.Hint = 'Добавить сведения в р.1';
+      кнДобавитьСтраницу.OnClick = 'кнПриНажатии_ДобавитьСведения';
 --    elsif ('фреймРаздел2' in [locFrameName,locParentFrameName]):
 --      кнДобавитьСтраницу.Caption = 'Добавить ставку';
 --      кнДобавитьСтраницу.Enabled = true;
 --      кнДобавитьСтраницу.Hint = 'Добавить вкладной лист р.2';
---      кнДобавитьСтраницу.OnClick = 'кнПриНажатии_ДобавитьСтраницу';
+--      кнДобавитьСтраницу.OnClick = 'кнПриНажатии_ДобавитьСведения';
 --    elsif ('фреймПриложение1' in [locFrameName,locParentFrameName]):
 --      кнДобавитьСтраницу.Caption = 'Добавить справку';
 --      кнДобавитьСтраницу.Enabled = true;
 --      кнДобавитьСтраницу.Hint = 'Добавить справку о доходах';
---      кнДобавитьСтраницу.OnClick = 'кнПриНажатии_ДобавитьСтраницу';
---    fi;
+--      кнДобавитьСтраницу.OnClick = 'кнПриНажатии_ДобавитьСведения';
+    fi;
   end;
 
 
