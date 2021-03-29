@@ -1,0 +1,467 @@
+class inherited ТББ_Базовый.Базовые.интЗаписьСрв "";
+--class inherited МашинаРеквизитов.Базовые.интЗапись "";
+import СИС2 classes Константы, Функции, СтроковыеФункции, ФункцииДокумента;
+
+inclass public
+
+  func СвязанныйКлассЗаписей: class СИС2.Базовая.БазоваяЗапись;
+    Result = Настройки.СИоЗП;
+  end;
+
+  func Create: Настройки.интСИоЗП;
+    Result = inherited Create;
+    Result.SetRecord(Настройки.СИоЗП.Create);
+  end;
+
+  func ОткрытьПоЗаписи synonym OpenRecord (locRecord: Настройки.СИоЗП): Настройки.интСИоЗП;
+    Result = inherited Create;
+    Result.SetRecord(locRecord);
+--    Result = FindInterfaceByRecord(locRecord);
+--    if (Result = nil):
+--      Result = inherited Create;
+--      Result.SetRecord(locRecord);
+--    fi;
+  end;
+
+  func ОткрытьДляУчреждения synonym OpenForSubject (locSubject: Базовый.Данные.Субъект): Настройки.интСИоЗП;
+    -- Метод вернет непустое значение (объект) даже в том случае, если запись с настройками для учреждения еще не создана.
+    var locRecord: Бюджет_ЗПиДД_ПР366.Настройки.СИоЗП;
+    locRecord = QueryRecord(Бюджет_ЗПиДД_ПР366.Настройки.СИоЗП, 'НашеУчреждение=' + Str(locSubject));
+    if (locRecord = nil):
+      locRecord = Бюджет_ЗПиДД_ПР366.Настройки.СИоЗП.Create;
+      locRecord.НашеУчреждение = locSubject;
+      locRecord.Post;
+      Result = OpenRecord(locRecord);
+      Result.ВосстановитьНастройкуПоУмолчанию(true);
+      Result.PostRecord;
+      Result.SetRecord(locRecord);
+    else
+      Return OpenRecord(locRecord);
+    fi;
+  end;
+
+inobject public
+
+  proc SetRecord (locRecord: Настройки.СИоЗП);
+    inherited SetRecord(locRecord);
+    if (Self.Record.ВидыНачислений.НачисленияТариф.Count = 0): --and
+    --(Self.Record.ВидыНачислений.ДопВыплата.Count = 0) and
+    --(Self.Record.ВидыНачислений.ДП.Count = 0) and
+    --(Self.Record.ВидыНачислений.Другое.Count = 0) and
+    --(Self.Record.ВидыНачислений.Прочее.Count = 0):
+      УстВидыНачисленийПоУмолчанию;
+    fi;
+    СоздатьЧекЛистНачислений;
+  end;
+
+  func ПолучитьКоличествоВидовНачислений: integer;
+    Return LengthOfArray(НачислениеВРасчете);
+  end;
+
+  proc ВосстановитьНастройкуПоУмолчанию (Впервые: logical = false);
+    if (Self.Record <> nil):
+      if (Self.Record.НашеУчреждение <> nil):
+        -- ШР, категории --
+        if Впервые:
+          --УстШтатноеРасписаниеПоУмолчанию;
+          --УстКатегорииПоУмолчанию;
+        fi;
+        -- Виды начислений --
+        УстВидыНачисленийПоУмолчанию;
+        --
+        PostRecord;
+      fi;
+    fi;
+  end;
+
+  proc УстШтатноеРасписаниеПоУмолчанию;
+    var aFlt: string[];
+    var locFlt: string;
+    aFlt[1] = 'НашеУчреждение=' + Str(Self.Record.НашеУчреждение);
+    aFlt[2] = 'isGroup=-1';
+    aFlt[3] = 'GroupDoc=nil';
+    aFlt[4] = 'ТипШр=0';
+    aFlt[5] = ТББ_Базовый.Фильтры.ФильтрПоДате(today);
+    locFlt = ТББ_Базовый.Фильтры.СложитьСтрокиФильтраПоИ(aFlt);
+    Self.Record.ШР = QueryLastRecord(Бюджет_Персонал.Справочники.ШтатноеРасписание, locFlt);
+  end;
+
+
+  proc УстВидыНачисленийПоУмолчанию;
+    УстВидыНачисленийПоУмолчанию_НачисленияТариф;
+    УстВидыНачисленийПоУмолчанию_ДоплатаСовмещение;
+    УстВидыНачисленийПоУмолчанию_НачисленияИныеФед;
+    УстВидыНачисленийПоУмолчанию_НачисленияИныеРег;
+    УстВидыНачисленийПоУмолчанию_НачисленияПремии;
+    УстВидыНачисленийПоУмолчанию_ДоплатаСтаж;
+    УстВидыНачисленийПоУмолчанию_ДоплатаСМ;
+    УстВидыНачисленийПоУмолчанию_ДоплатаКвалКат;
+    УстВидыНачисленийПоУмолчанию_ДоплатаУС;
+    УстВидыНачисленийПоУмолчанию_ДоплатаНаставничество;
+    УстВидыНачисленийПоУмолчанию_ДоплатаМолодСпец;
+    УстВидыНачисленийПоУмолчанию_ВыплатыИныеСтимул;
+    УстВидыНачисленийПоУмолчанию_ВыплатыПрочие;
+    УстВидыНачисленийПоУмолчанию_ВыплатыКомпенс;
+    УстВидыНачисленийПоУмолчанию_Исключаемые;
+  end;
+
+  proc УстВидыНачисленийПоУмолчанию_НачисленияТариф;
+    var aFlt: string[];
+    var locFlt: string;
+    var aData: Бюджет_ЗПиДД.Справочники.ВидыНачислений[];
+    Self.Record.ВидыНачислений.НачисленияТариф.Clear;
+    aFlt[1] = ПолучитьОбщуюЧастьФильтра_ВидовНачислений;
+    aFlt[2] = 'Match(ТипРасчета.Код, "11??")'; -- оклады
+    locFlt = ТББ_Базовый.Фильтры.СложитьСтрокиФильтраПоИ(aFlt);
+    aData = QueryAsArray(locFlt);
+    WriteStructField(aData, Self.Record.ВидыНачислений.НачисленияТариф);
+  end;
+
+  proc УстВидыНачисленийПоУмолчанию_ДоплатаСовмещение; -- по умолчанию не определены
+    Self.Record.ВидыНачислений.ДоплатаСовмещение.Clear;
+  end;
+
+  proc УстВидыНачисленийПоУмолчанию_НачисленияИныеФед;
+    var aFlt: string[];
+    var locFlt: string;
+    var aData: Бюджет_ЗПиДД.Справочники.ВидыНачислений[];
+    Self.Record.ВидыНачислений.НачисленияИныеФед.Clear;
+    aFlt[1] = ПолучитьОбщуюЧастьФильтра_ВидовНачислений;
+    aFlt[2] = 'ТипРасчета.Код in ["1201","1202","1203","1204","1260","1265","1270"]'; -- абстрактные надбавки + ночные,сверхурочные, праздничные
+    locFlt = ТББ_Базовый.Фильтры.СложитьСтрокиФильтраПоИ(aFlt);
+    aData = QueryAsArray(locFlt);
+    WriteStructField(aData, Self.Record.ВидыНачислений.НачисленияИныеФед);
+  end;
+
+  proc УстВидыНачисленийПоУмолчанию_НачисленияИныеРег; -- по умолчанию не определены
+    Self.Record.ВидыНачислений.НачисленияИныеРег.Clear;
+  end;
+
+  proc УстВидыНачисленийПоУмолчанию_НачисленияПремии;
+    var aFlt: string[];
+    var locFlt: string;
+    var aData: Бюджет_ЗПиДД.Справочники.ВидыНачислений[];
+    Self.Record.ВидыНачислений.НачисленияПремии.Clear;
+    aFlt[1] = ПолучитьОбщуюЧастьФильтра_ВидовНачислений;
+    aFlt[2] = 'Match(ТипРасчета.Код, "15??")'; -- премии
+    locFlt = ТББ_Базовый.Фильтры.СложитьСтрокиФильтраПоИ(aFlt);
+    aData = QueryAsArray(locFlt);
+    WriteStructField(aData, Self.Record.ВидыНачислений.НачисленияПремии);
+  end;
+
+  proc УстВидыНачисленийПоУмолчанию_ДоплатаСтаж;
+    var aFlt: string[];
+    var locFlt: string;
+    var aData: Бюджет_ЗПиДД.Справочники.ВидыНачислений[];
+    Self.Record.ВидыНачислений.ДоплатаСтаж.Clear;
+    aFlt[1] = ПолучитьОбщуюЧастьФильтра_ВидовНачислений;
+    aFlt[2] = 'ТипРасчета.Код in ["1250"]'; -- стаж, выслуга
+    locFlt = ТББ_Базовый.Фильтры.СложитьСтрокиФильтраПоИ(aFlt);
+    aData = QueryAsArray(locFlt);
+    WriteStructField(aData, Self.Record.ВидыНачислений.ДоплатаСтаж);
+  end;
+
+  proc УстВидыНачисленийПоУмолчанию_ДоплатаСМ; -- (доплаты за работу в сельской местности) -  по умолчанию не определены
+    Self.Record.ВидыНачислений.ДоплатаСМ.Clear;
+  end;
+
+  proc УстВидыНачисленийПоУмолчанию_ДоплатаКвалКат;
+    var aFlt: string[];
+    var locFlt: string;
+    var aData: Бюджет_ЗПиДД.Справочники.ВидыНачислений[];
+    Self.Record.ВидыНачислений.ДоплатаКвалКат.Clear;
+    aFlt[1] = ПолучитьОбщуюЧастьФильтра_ВидовНачислений;
+    aFlt[2] = 'ТипРасчета.Код in ["1225"]'; --
+    locFlt = ТББ_Базовый.Фильтры.СложитьСтрокиФильтраПоИ(aFlt);
+    aData = QueryAsArray(locFlt);
+    WriteStructField(aData, Self.Record.ВидыНачислений.ДоплатаКвалКат);
+  end;
+
+  proc УстВидыНачисленийПоУмолчанию_ДоплатаУС;
+    var aFlt: string[];
+    var locFlt: string;
+    var aData: Бюджет_ЗПиДД.Справочники.ВидыНачислений[];
+    Self.Record.ВидыНачислений.ДоплатаУС.Clear;
+    aFlt[1] = ПолучитьОбщуюЧастьФильтра_ВидовНачислений;
+    aFlt[2] = 'ТипРасчета.Код in ["1210","1215"]'; -- для тех, кто путает уч.степень и уч.звание
+    locFlt = ТББ_Базовый.Фильтры.СложитьСтрокиФильтраПоИ(aFlt);
+    aData = QueryAsArray(locFlt);
+    WriteStructField(aData, Self.Record.ВидыНачислений.ДоплатаУС);
+  end;
+
+  proc УстВидыНачисленийПоУмолчанию_ДоплатаНаставничество; -- по умолчанию не определены
+    Self.Record.ВидыНачислений.ДоплатаНаставничество.Clear;
+  end;
+
+  proc УстВидыНачисленийПоУмолчанию_ДоплатаМолодСпец; -- по умолчанию не определены
+    Self.Record.ВидыНачислений.ДоплатаМолодСпец.Clear;
+  end;
+
+  proc УстВидыНачисленийПоУмолчанию_ВыплатыИныеСтимул;
+    var aFlt: string[];
+    var locFlt: string;
+    var aData: Бюджет_ЗПиДД.Справочники.ВидыНачислений[];
+    Self.Record.ВидыНачислений.ВыплатыИныеСтимул.Clear;
+    aFlt[1] = ПолучитьОбщуюЧастьФильтра_ВидовНачислений;
+    aFlt[2] = 'ТипРасчета.Код in ["1220","1290"]'; -- за классный чин и прочие доплаты
+    locFlt = ТББ_Базовый.Фильтры.СложитьСтрокиФильтраПоИ(aFlt);
+    aData = QueryAsArray(locFlt);
+    WriteStructField(aData, Self.Record.ВидыНачислений.ВыплатыИныеСтимул);
+  end;
+
+  proc УстВидыНачисленийПоУмолчанию_ВыплатыПрочие;
+    var aFlt: string[];
+    var locFlt: string;
+    var aData: Бюджет_ЗПиДД.Справочники.ВидыНачислений[];
+    Self.Record.ВидыНачислений.ВыплатыПрочие.Clear;
+    aFlt[1] = ПолучитьОбщуюЧастьФильтра_ВидовНачислений;
+    aFlt[2] = 'ТипРасчета.Код in ["1902","1903"]';
+    locFlt = ТББ_Базовый.Фильтры.СложитьСтрокиФильтраПоИ(aFlt);
+    aData = QueryAsArray(locFlt);
+    WriteStructField(aData, Self.Record.ВидыНачислений.ВыплатыПрочие);
+  end;
+
+  proc УстВидыНачисленийПоУмолчанию_ВыплатыКомпенс;
+    var aFlt: string[];
+    var locFlt: string;
+    var aData: Бюджет_ЗПиДД.Справочники.ВидыНачислений[];
+    Self.Record.ВидыНачислений.ВыплатыКомпенс.Clear;
+    aFlt[1] = ПолучитьОбщуюЧастьФильтра_ВидовНачислений;
+    aFlt[2] = 'ТипРасчета.Код in ["1280"]'; -- районные
+    locFlt = ТББ_Базовый.Фильтры.СложитьСтрокиФильтраПоИ(aFlt);
+    aData = QueryAsArray(locFlt);
+    WriteStructField(aData, Self.Record.ВидыНачислений.ВыплатыКомпенс);
+  end;
+
+  proc УстВидыНачисленийПоУмолчанию_Исключаемые;
+    var aData, aIncluded, aAllData: Бюджет_ЗПиДД.Справочники.ВидыНачислений[];
+    var i: integer;
+    Self.Record.ВидыНачислений.Исключаемые.Clear;
+    aData = ReadStructField(Self.Record.ВидыНачислений.НачисленияТариф);        AddsInArray(aIncluded, aData);
+    aData = ReadStructField(Self.Record.ВидыНачислений.ДоплатаСовмещение);      AddsInArray(aIncluded, aData);
+    aData = ReadStructField(Self.Record.ВидыНачислений.НачисленияИныеФед);      AddsInArray(aIncluded, aData);
+    aData = ReadStructField(Self.Record.ВидыНачислений.НачисленияИныеРег);      AddsInArray(aIncluded, aData);
+    aData = ReadStructField(Self.Record.ВидыНачислений.НачисленияПремии);       AddsInArray(aIncluded, aData);
+    aData = ReadStructField(Self.Record.ВидыНачислений.ДоплатаСтаж);            AddsInArray(aIncluded, aData);
+    aData = ReadStructField(Self.Record.ВидыНачислений.ДоплатаСМ);              AddsInArray(aIncluded, aData);
+    aData = ReadStructField(Self.Record.ВидыНачислений.ДоплатаКвалКат);         AddsInArray(aIncluded, aData);
+    aData = ReadStructField(Self.Record.ВидыНачислений.ДоплатаУС);              AddsInArray(aIncluded, aData);
+    aData = ReadStructField(Self.Record.ВидыНачислений.ДоплатаНаставничество);  AddsInArray(aIncluded, aData);
+    aData = ReadStructField(Self.Record.ВидыНачислений.ДоплатаМолодСпец);       AddsInArray(aIncluded, aData);
+    aData = ReadStructField(Self.Record.ВидыНачислений.ВыплатыИныеСтимул);      AddsInArray(aIncluded, aData);
+    aData = ReadStructField(Self.Record.ВидыНачислений.ВыплатыПрочие);          AddsInArray(aIncluded, aData);
+    aData = ReadStructField(Self.Record.ВидыНачислений.ВыплатыКомпенс);         AddsInArray(aIncluded, aData);
+    aData = nil;
+    aAllData = QueryAsArray(ПолучитьОбщуюЧастьФильтра_ВидовНачислений);
+    for i = 1 .. LengthOfArray(aAllData) do
+      if not (aAllData[i] in aIncluded):
+        AddInArray(aData, aAllData[i]);
+      fi;
+    od;
+    WriteStructField(aData, Self.Record.ВидыНачислений.Исключаемые);
+  end;
+
+
+  func ПолучитьОбщуюЧастьФильтра_ВидовНачислений: string;
+    var aFlt: string[];
+    aFlt[1] = 'НашеУчреждение=' + Str(Self.Record.НашеУчреждение);
+    aFlt[2] = 'isGroup<>-1';
+    aFlt[3] = 'ТипРасчета.Код<>"1901"'; -- кроме аванса
+    Return ТББ_Базовый.Фильтры.СложитьСтрокиФильтраПоИ(aFlt);
+  end;
+
+
+  proc УстШтатноеРасписание (locValue: Бюджет_Персонал.Справочники.ШтатноеРасписание);
+    RecordModify(Self.Record);
+    Self.Record.ШР = locValue;
+  end;
+
+  func ШтатноеРасписание: Бюджет_Персонал.Справочники.ШтатноеРасписание;
+    if (Self.Record <> nil):
+      Return Self.Record.ШР;
+    fi;
+  end;
+
+  func ШтатноеРасписание_Имя: string;
+    var R: Бюджет_Персонал.Справочники.ШтатноеРасписание;
+    var aTxt: string[];
+    R = ШтатноеРасписание;
+    if (R <> nil):
+      aTxt[1] = R.НашеУчреждение.Имя;
+      if (R.ДатаНачала <> nil):
+        aTxt[2] = '(с ' + Str(R.ДатаНачала) + ')';
+      fi;
+      if (R.Комментарий <> nil):
+        aTxt[3] = '[' + R.Комментарий + ']';
+      fi;
+      Return МассивСтрокВТекст(aTxt, false);
+    fi;
+  end;
+
+
+  func ПолучитьНачисления_Исключаемые: Бюджет_ЗПиДД.Справочники.ВидыНачислений[];
+    var p, pp: integer;
+    var locElt: ТББ_Базовый.ЧекЛист.Элемент;
+    pp = ПолучитьКоличествоВидовНачислений;
+    for p = 1 .. pp do
+      locElt = НачислениеВРасчете[p];
+      if (not locElt.Record.IsGroup):
+        if (not locElt.OnOff):
+          AddInArray(Result, locElt.Record);
+        fi;
+      fi;
+    od;
+  end;
+
+  func ПолучитьНачисления_Группы (GroupName: string): Бюджет_ЗПиДД.Справочники.ВидыНачислений[];
+    var p, pp: integer;
+    var locElt: ТББ_Базовый.ЧекЛист.Элемент;
+    pp = ПолучитьКоличествоВидовНачислений;
+    for p = 1 .. pp do
+      locElt = НачислениеВРасчете[p];
+      if (not locElt.Record.IsGroup):
+        if locElt.OnOff and (locElt.GetLinkData(GroupName) as logical):
+          AddInArray(Result, locElt.Record);
+        fi;
+      fi;
+    od;
+  end;
+
+  proc PostRecord;
+    var aData: Бюджет_ЗПиДД.Справочники.ВидыНачислений[];
+    aData = ПолучитьНачисления_Исключаемые;                      WriteStructField(aData, Self.Record.ВидыНачислений.Исключаемые);
+    aData = ПолучитьНачисления_Группы('НачисленияТариф'       ); WriteStructField(aData, Self.Record.ВидыНачислений.НачисленияТариф);
+    aData = ПолучитьНачисления_Группы('ДоплатаСовмещение'     ); WriteStructField(aData, Self.Record.ВидыНачислений.ДоплатаСовмещение);
+    aData = ПолучитьНачисления_Группы('НачисленияИныеФед'     ); WriteStructField(aData, Self.Record.ВидыНачислений.НачисленияИныеФед);
+    aData = ПолучитьНачисления_Группы('НачисленияИныеРег'     ); WriteStructField(aData, Self.Record.ВидыНачислений.НачисленияИныеРег);
+    aData = ПолучитьНачисления_Группы('НачисленияПремии'      ); WriteStructField(aData, Self.Record.ВидыНачислений.НачисленияПремии);
+    aData = ПолучитьНачисления_Группы('ДоплатаСтаж'           ); WriteStructField(aData, Self.Record.ВидыНачислений.ДоплатаСтаж);
+    aData = ПолучитьНачисления_Группы('ДоплатаСМ'             ); WriteStructField(aData, Self.Record.ВидыНачислений.ДоплатаСМ);
+    aData = ПолучитьНачисления_Группы('ДоплатаКвалКат'        ); WriteStructField(aData, Self.Record.ВидыНачислений.ДоплатаКвалКат);
+    aData = ПолучитьНачисления_Группы('ДоплатаУС'             ); WriteStructField(aData, Self.Record.ВидыНачислений.ДоплатаУС);
+    aData = ПолучитьНачисления_Группы('ДоплатаНаставничество' ); WriteStructField(aData, Self.Record.ВидыНачислений.ДоплатаНаставничество);
+    aData = ПолучитьНачисления_Группы('ДоплатаМолодСпец'      ); WriteStructField(aData, Self.Record.ВидыНачислений.ДоплатаМолодСпец);
+    aData = ПолучитьНачисления_Группы('ВыплатыИныеСтимул'     ); WriteStructField(aData, Self.Record.ВидыНачислений.ВыплатыИныеСтимул);
+    aData = ПолучитьНачисления_Группы('ВыплатыПрочие'         ); WriteStructField(aData, Self.Record.ВидыНачислений.ВыплатыПрочие);
+    aData = ПолучитьНачисления_Группы('ВыплатыКомпенс'        ); WriteStructField(aData, Self.Record.ВидыНачислений.ВыплатыКомпенс);
+    inherited PostRecord;
+  end;
+
+  Record: Настройки.СИоЗП;
+  НачислениеВРасчете: ТББ_Базовый.ЧекЛист.Элемент[];
+
+inobject private
+
+  proc СоздатьЧекЛистНачислений; -- по записи
+    var aFlt: string[];
+    var locElt: ТББ_Базовый.ЧекЛист.Элемент;
+    var ВидыНачислений_Исключаемые            :Бюджет_ЗПиДД.Справочники.ВидыНачислений[];
+    var ВидыНачислений_НачисленияТариф        :Бюджет_ЗПиДД.Справочники.ВидыНачислений[];
+    var ВидыНачислений_ДоплатаСовмещение      :Бюджет_ЗПиДД.Справочники.ВидыНачислений[];
+    var ВидыНачислений_НачисленияИныеФед      :Бюджет_ЗПиДД.Справочники.ВидыНачислений[];
+    var ВидыНачислений_НачисленияИныеРег      :Бюджет_ЗПиДД.Справочники.ВидыНачислений[];
+    var ВидыНачислений_НачисленияПремии       :Бюджет_ЗПиДД.Справочники.ВидыНачислений[];
+    var ВидыНачислений_ДоплатаСтаж            :Бюджет_ЗПиДД.Справочники.ВидыНачислений[];
+    var ВидыНачислений_ДоплатаСМ              :Бюджет_ЗПиДД.Справочники.ВидыНачислений[];
+    var ВидыНачислений_ДоплатаКвалКат         :Бюджет_ЗПиДД.Справочники.ВидыНачислений[];
+    var ВидыНачислений_ДоплатаУС              :Бюджет_ЗПиДД.Справочники.ВидыНачислений[];
+    var ВидыНачислений_ДоплатаНаставничество  :Бюджет_ЗПиДД.Справочники.ВидыНачислений[];
+    var ВидыНачислений_ДоплатаМолодСпец       :Бюджет_ЗПиДД.Справочники.ВидыНачислений[];
+    var ВидыНачислений_ВыплатыИныеСтимул      :Бюджет_ЗПиДД.Справочники.ВидыНачислений[];
+    var ВидыНачислений_ВыплатыПрочие          :Бюджет_ЗПиДД.Справочники.ВидыНачислений[];
+    var ВидыНачислений_ВыплатыКомпенс         :Бюджет_ЗПиДД.Справочники.ВидыНачислений[];
+    НачислениеВРасчете = nil; -- в случае реинициализации
+    ВидыНачислений_Исключаемые            = ReadStructField(Self.Record.ВидыНачислений.Исключаемые);
+    ВидыНачислений_НачисленияТариф        = ReadStructField(Self.Record.ВидыНачислений.НачисленияТариф);
+    ВидыНачислений_ДоплатаСовмещение      = ReadStructField(Self.Record.ВидыНачислений.ДоплатаСовмещение);
+    ВидыНачислений_НачисленияИныеФед      = ReadStructField(Self.Record.ВидыНачислений.НачисленияИныеФед);
+    ВидыНачислений_НачисленияИныеРег      = ReadStructField(Self.Record.ВидыНачислений.НачисленияИныеРег);
+    ВидыНачислений_НачисленияПремии       = ReadStructField(Self.Record.ВидыНачислений.НачисленияПремии);
+    ВидыНачислений_ДоплатаСтаж            = ReadStructField(Self.Record.ВидыНачислений.ДоплатаСтаж);
+    ВидыНачислений_ДоплатаСМ              = ReadStructField(Self.Record.ВидыНачислений.ДоплатаСМ);
+    ВидыНачислений_ДоплатаКвалКат         = ReadStructField(Self.Record.ВидыНачислений.ДоплатаКвалКат);
+    ВидыНачислений_ДоплатаУС              = ReadStructField(Self.Record.ВидыНачислений.ДоплатаУС);
+    ВидыНачислений_ДоплатаНаставничество  = ReadStructField(Self.Record.ВидыНачислений.ДоплатаНаставничество);
+    ВидыНачислений_ДоплатаМолодСпец       = ReadStructField(Self.Record.ВидыНачислений.ДоплатаМолодСпец);
+    ВидыНачислений_ВыплатыИныеСтимул      = ReadStructField(Self.Record.ВидыНачислений.ВыплатыИныеСтимул);
+    ВидыНачислений_ВыплатыПрочие          = ReadStructField(Self.Record.ВидыНачислений.ВыплатыПрочие);
+    ВидыНачислений_ВыплатыКомпенс         = ReadStructField(Self.Record.ВидыНачислений.ВыплатыКомпенс);
+    with Query.Create([Бюджет_ЗПиДД.Справочники.ВидыНачислений]) do
+      aFlt[1] = 'НашеУчреждение=' + Str(Record.НашеУчреждение);
+      aFlt[2] = 'SubStr(ТипРасчета.Код,1,1)="1"'; -- только "зарплата"
+      aFlt[3] = 'GroupDoc<>nil'; -- кроме верхней записи
+      aFlt[4] = 'ТипРасчета.Код<>"1901"'; -- кроме аванса
+      Filter = СложитьСтрокиФильтраПоИ(aFlt);
+      Order = 'Код';
+      Select;
+      while not Eof do
+        locElt = ТББ_Базовый.ЧекЛист.Элемент.CreateByRecord(0, Current);
+        locElt.SetOnOff(not (Current in ВидыНачислений_Исключаемые));
+        locElt.SetLinkData('НачисленияТариф'       ,(Current in ВидыНачислений_НачисленияТариф));
+        locElt.SetLinkData('ДоплатаСовмещение'     ,(Current in ВидыНачислений_ДоплатаСовмещение));
+        locElt.SetLinkData('НачисленияИныеФед'     ,(Current in ВидыНачислений_НачисленияИныеФед));
+        locElt.SetLinkData('НачисленияИныеРег'     ,(Current in ВидыНачислений_НачисленияИныеРег));
+        locElt.SetLinkData('НачисленияПремии'      ,(Current in ВидыНачислений_НачисленияПремии));
+        locElt.SetLinkData('ДоплатаСтаж'           ,(Current in ВидыНачислений_ДоплатаСтаж));
+        locElt.SetLinkData('ДоплатаСМ'             ,(Current in ВидыНачислений_ДоплатаСМ));
+        locElt.SetLinkData('ДоплатаКвалКат'        ,(Current in ВидыНачислений_ДоплатаКвалКат));
+        locElt.SetLinkData('ДоплатаУС'             ,(Current in ВидыНачислений_ДоплатаУС));
+        locElt.SetLinkData('ДоплатаНаставничество' ,(Current in ВидыНачислений_ДоплатаНаставничество));
+        locElt.SetLinkData('ДоплатаМолодСпец'      ,(Current in ВидыНачислений_ДоплатаМолодСпец));
+        locElt.SetLinkData('ВыплатыИныеСтимул'     ,(Current in ВидыНачислений_ВыплатыИныеСтимул));
+        locElt.SetLinkData('ВыплатыПрочие'         ,(Current in ВидыНачислений_ВыплатыПрочие));
+        locElt.SetLinkData('ВыплатыКомпенс'        ,(Current in ВидыНачислений_ВыплатыКомпенс));
+        AddInArray(НачислениеВРасчете, locElt);
+        Next;
+      od;
+    end;
+  end;
+
+
+  -- 2_Копия методов СИС2.ФункцииДокумена (расш.); здесь - серверные, типизированные0. --
+
+  func  QueryAsArray (Flt: String = ""): Бюджет_ЗПиДД.Справочники.ВидыНачислений[];
+    var z: integer;
+    with Query.Create([Бюджет_ЗПиДД.Справочники.ВидыНачислений]) do
+      Filter = Flt;
+      LoadingFieldsMode = mdNone;
+      if not RecordsExists:
+       return [];
+      else
+        Select;
+        while not EOF do
+          z = z + 1;
+          Result[z] = Current;
+          Next;
+        end;
+      fi;
+    end;
+  end;
+
+  --@doc Осуществляет считывание из многозначного поля записи в массив
+  func СчитатьИзМногозначногоПоля synonym ReadStructField (МногозначноеПоле: Subtable): Бюджет_ЗПиДД.Справочники.ВидыНачислений[];
+    var i: Integer;
+    if МногозначноеПоле<>nil:
+      for i = 1 .. МногозначноеПоле.Count do
+        try
+          result[i] = МногозначноеПоле.Items[i];
+        except
+        end;
+      od;
+    fi;
+  end;
+
+  --@doc Осуществляет запись в многозначное поле из массива
+  proc ЗаписатьВМногозначноеПоле synonym WriteStructField (Значение: Бюджет_ЗПиДД.Справочники.ВидыНачислений[]; МногозначноеПоле: Subtable);
+    var i: Integer;
+    if Значение <> СчитатьИзМногозначногоПоля(МногозначноеПоле):
+      МногозначноеПоле.Clear;
+      for i = 1 .. LengthOfArray(Значение) do
+        МногозначноеПоле.Add;
+        МногозначноеПоле.Items[i] = Значение[i];
+      od;
+    fi;
+  end;
+
+
+end

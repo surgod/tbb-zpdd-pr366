@@ -3,6 +3,7 @@
   <Options Caption="ПР-366" Comment="#" Version="001" Author="Copyright © 2021 ТБ.Бюджет" Code="0" SubCode="0" WebCode="0" WebSubCode="0" Frontal="True"/>
   <Usage>
     <Project Name="Бюджет_ЗПиДД"/>
+    <Project Name="Бюджет_ЗПиДД_МС"/>
   </Usage>
   <Groups>
     <Group Name="Записи" Type="Documents" Disabled="False"/>

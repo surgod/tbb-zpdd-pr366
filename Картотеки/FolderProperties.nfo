@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <Properties Version="1"/>
 <Items>
+  <Item Name="Настройки"/>
   <Item Name="Справочники"/>
   <Item Name="Отчетность"/>
 </Items>
