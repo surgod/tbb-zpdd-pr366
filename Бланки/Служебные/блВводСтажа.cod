@@ -1,0 +1,128 @@
+class inherited —»—2.ЅазовыйЅланк "¬вод стажа";
+
+--{{2_ —войства
+
+inobject private
+
+  var редЋет: Edit;
+  var редћес: Edit;
+  var Ћет—тажа: string;
+  var ћес—тажа: string;
+  var Ўифр—тажа_: string;
+--}}
+
+--2_  онструкторы, визуализаторы0. --
+
+inclass public
+
+  func »зменить«начение (var locValue: string): Integer;
+    var locForm: —лужебные.бл¬вод—тажа;
+    locForm = Self.CreateEx(locValue);
+    if CmOk = locForm.ShowEx(nil, Kernel.Window.ModalWindow):
+      locValue = locForm.Ўифр—тажа;
+      Return CmOk;
+    fi;
+  end;
+
+  func CreateEx (locValue: string): —лужебные.бл¬вод—тажа;
+    Result = —лужебные.бл¬вод—тажа.Create;
+    Result.Ўифр—тажа_ = locValue;
+    Result.Ћет—тажа = ExtractWord(locValue, 1);
+    Result.ћес—тажа = ExtractWord(locValue, 2);
+  end;
+
+--2_ ќбработчики событий шаблона0. --
+
+inobject private
+
+  proc шаблон_ѕриќткрытии (Create: Logical);
+    var locColor: integer;
+    inherited шаблон_ѕриќткрытии(Create);
+    locColor = —тильѕо»мени('ѕоле ввода').FieldColor;
+    if (locColor <> -1):
+      редЋет.Color = locColor;
+      редћес.Color = locColor;
+    fi;
+    редЋет.SetFocus;
+  end;
+
+--2_ ќбработчики событий прочих объектов шаблона0. --
+
+  proc ред—таж_ѕри»зменении (Sender: Edit);
+    var “екущий“екст: string;
+    var “екущий—имвол: string;
+    “екущий“екст = Sender.Text;
+    “екущий—имвол = SubStr(“екущий“екст, Length(“екущий“екст), 1);
+    if not (“екущий—имвол in ['0','1','2','3','4','5','6','7','8','9','']):
+      DisplayMessage('—таж не может содержать иных символов, кроме цифр !');
+      Sender.Text = SubStr(“екущий“екст, 1, Length(“екущий“екст) - 1);
+    fi;
+    if (Sender = редЋет):
+      if (—трока¬÷елое(“екущий“екст) > 80):
+        DisplayMessage('—таж не должен быть более 80 лет !');
+        Sender.Text = SubStr(“екущий“екст, 1, Length(“екущий“екст) - 1);
+      fi;
+    fi;
+    if (Sender = редћес):
+      if (—трока¬÷елое(“екущий“екст) > 11):
+        DisplayMessage(' оличество мес€цев стажа не должно быть более 11 !');
+        Sender.Text = SubStr(“екущий“екст, 1, Length(“екущий“екст) - 1);
+      fi;
+    fi;
+    if    (Sender = редЋет): Ћет—тажа = Sender.Text;
+    elsif (Sender = редћес): ћес—тажа = Sender.Text;
+    fi;
+    if    (Sender = редЋет): if (Length(Sender.Text) = 2): редћес.SetFocus; fi;
+    elsif (Sender = редћес): if (Length(Sender.Text) = 2): кнќ .SetFocus; fi;
+    fi;
+    —интез—тажа—тр;
+    ƒоступность√лавной нопки;
+  end;
+
+--2_ ¬спомогательные методы0. --
+
+inobject public
+
+  func Ўифр—тажа: string;
+    Result = Ўифр—тажа_;
+  end;
+
+inobject private
+
+  proc »нициализироватьЁлементы÷вета оторыхћожноћен€ть;
+    Ёлементы÷вета оторыхћожноћен€ть = [[nil], [nil, nil]];
+  end;
+
+  proc —интез—тажа—тр;
+    var лс, мс: integer;
+    лс = Ћет¬÷елое;
+    мс = ћес¬÷елое;
+    Ўифр—тажа_ = Str(лс, '00') + '.' + Str(мс, '00');
+  end;
+
+  proc ƒоступность√лавной нопки;
+    var лс, мс: integer;
+    лс = Ћет¬÷елое;
+    мс = ћес¬÷елое;
+    кнќ .Enabled = (лс >= 0) and (мс >= 0) and (мс <= 11);
+  end;
+
+  func Ћет¬÷елое: integer;
+    Return —трока¬÷елое(Ћет—тажа);
+  end;
+
+  func ћес¬÷елое: integer;
+    Return —трока¬÷елое(ћес—тажа);
+  end;
+
+  func —трока¬÷елое (sValue :string): integer;
+    if (sValue <> nil):
+      try
+        Result = Int(sValue);
+      except
+      end;
+    fi;
+  end;
+
+
+end

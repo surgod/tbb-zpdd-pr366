@@ -1,0 +1,16 @@
+extends Бюджет_ЗПиДД.Справочники.Субъект.редКонтрагентР "";
+
+-- 2_Обработчики событий шаблона0. --
+
+inobject private
+
+  proc шаблон_ПриСоздании (Context: Variant);
+    var locFrameR: TemplateFrame;
+    var newSection: TemplateSection;
+    extended шаблон_ПриСоздании(Context);
+    locFrameR = Self.Template.FrameByName['фреймНастройкаУчета_Прочее'];
+    newSection = locFrameR.AddSection;
+    newSection.Assign(Шаблоны.шаблонКонтрагентР.ПолучитьСекцию_ФормаСтатУчетаЗП);
+  end;
+
+end

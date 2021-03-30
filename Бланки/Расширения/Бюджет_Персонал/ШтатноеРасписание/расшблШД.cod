@@ -1,0 +1,91 @@
+extends Бюджет_Персонал.ШтатноеРасписание.блШД "";
+
+-- 2_Обработчики событий шаблона0. --
+
+inobject private
+
+  proc шаблон_ПриСоздании (Context: Variant);
+    var tFrame: TemplateFrame;
+    var tSection: TemplateSection;
+    tFrame   = Template.FrameByName['Frame_MainHead'];
+    if (tFrame <> nil):
+      tSection = SectionByName('секцКатегорияУчета', tFrame);
+      if (tSection <> nil):
+        tSection.Assign(Шаблоны.шаблонШД.ПолучитьСекцию_КатегорияУчета);
+      fi;
+    fi;
+    extended шаблон_ПриСоздании(Context);
+  end;
+
+  proc шаблон_ПриОткрытии (Create: Logical);
+    var locCell: TemplateCell;
+    extended шаблон_ПриОткрытии(Create);
+    if (wrkRecord <> nil):
+      if (wrkRecord.НашеУчреждение <> nil):
+        locCell = Template.CellByField['ККП'];
+        if (locCell <> nil):
+          locCell.Enabled = (wrkRecord.НашеУчреждение.КодФормыСтатОтчетностиЗП <> nil);
+        fi;
+      fi;
+    fi;
+  end;
+
+
+-- 2_Обработчики событий клеток шаблона0. --
+
+  proc Поле_ПриРисовании_ККП (Cell: TemplateCell; Selected: Logical; var Color: Integer; var FieldColor: Integer; Font: Font);
+    if Cell.Enabled:
+      inherited ПриРисовании_КакПолеВыбора(Cell, Selected, Color, FieldColor, Font);
+    else
+      inherited ПриРисовании_КакЗапрещенное(Cell, Selected, Color, FieldColor, Font);
+      Font.Italic = true;
+    fi;
+  end;
+
+  func Поле_ПриВыводе_ККП (Cell: TemplateCell; Value: Variant; Action: Template.OutputTypes; var Format: String): Variant;
+    var локККП, локКодСтатФормы: string;
+    var locRecord :Справочники.Росстат.ККП;
+    if (wrkRecord <> nil):
+      локККП = wrkRecord.ККП;
+      if (локККП <> nil):
+        if (wrkRecord.НашеУчреждение <> nil):
+          локКодСтатФормы = wrkRecord.НашеУчреждение.КодФормыСтатОтчетностиЗП;
+        fi;
+        if (локКодСтатФормы <> nil):
+          locRecord = СИС2.ФункцииДокумента.QueryRecord(Справочники.Росстат.ККП, 'Код="' + локКодСтатФормы + '.' + локККП + '"');
+          Return '( ' + локККП + ' ) ' + locRecord.Имя;
+        else
+          Return локККП;
+        fi;
+      else
+        with СИС2.СтроковыеФункции do
+          Result = '( 600 ) Иной персонал';
+          Result = MarkInGray(Result);
+          Return MarkInItalic(Result);
+        end;
+      fi;
+    fi;
+  end;
+
+  func Поле_ПриВходе_ККП (Cell: TemplateCell; Index: Integer; Action: Template.EnterTypes): Logical;
+    var локКодСтатФормы: string;
+    var локРезультатВыбора: Бюджет_ЗПиДД_ПР366.Справочники.Росстат.ККП;
+    var locFlt: string;
+    if (Action <> Template.Clear):
+      if (wrkRecord <> nil):
+        if (wrkRecord.НашеУчреждение <> nil):
+          локКодСтатФормы = wrkRecord.НашеУчреждение.КодФормыСтатОтчетностиЗП;
+        fi;
+      fi;
+      if (локКодСтатФормы <> nil):
+        locFlt = 'СтатФорма="' + локКодСтатФормы + '"';
+        if (CmOk = Справочники.Росстат.картККП.ВыполнитьВыбор(локРезультатВыбора, locFlt)):
+          wrkRecord.ККП = локРезультатВыбора.ККП;
+        fi;
+      fi;
+    else
+      wrkRecord.ККП = nil;
+    fi;
+  end;
+
+end

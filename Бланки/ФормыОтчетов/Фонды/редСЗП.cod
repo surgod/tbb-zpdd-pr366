@@ -1,10 +1,14 @@
 Class inherited МашинаРеквизитов.Базовые.блРедакторСИнтерфейсом "Сведения о заработной плате" , editor Отчетность.СИоЗП_СЗП;
-import СИС2 classes Функции, СтроковыеФункции;
+
+import СИС2 classes Константы, Функции, СтроковыеФункции, ФункцииДокумента;
 
 inclass public
 inobject private
 
 --{{ Свойства
+
+  var Интерфейс: Отчетность.интСЗП;
+
 
 --}}
 
@@ -27,11 +31,28 @@ inobject private
 
 inobject private
 
-  func Поле_ПриВыводе (Cell :TemplateCell; Value :Variant; Action :Template.OutputTypes; var Format :String) :Variant;
-    if (Cell.Contents = 'Назначение'):
-      if (Cell.Frame > 0) and (Cell.Frame <= Record.СЗПД.Count):
-        Return ОписаниеДолжности(Record.СЗПД[Cell.Frame].Назначение);
+  func Поле_ПриНажатии (Cell :TemplateCell; Action :Template.ClickTypes) :Logical;
+    if (Cell.Contents = 'x'):
+      if (Cell.Frame > 0) and (Cell.Frame <= Record.СЗПД.Count) and (Record.СЗПД.Count > 1):
+        СЗПД.Delete(Cell.Frame);
+      elsif (Cell.Frame > 0) and (Cell.Frame <= Record.СЗПД.Count) and (Record.СЗПД.Count = 1):
+        DisplayMessage('Удаление единствоенной должности не допускается. При необходиомсти можно удалить карточку из р.1 целиком.');
       fi;
+    fi;
+  end;
+
+  func Поле_ПриВходе (Cell :TemplateCell; Index :Integer; Action :Template.EnterTypes) :Logical;
+    if (Cell.Contents = 'ККП'):                ИзменитьККП(Index, Action);
+    elsif (Cell.Contents = 'ОУТ'):             ИзменитьОУТ(Index, Action);
+    elsif (Cell.Contents = 'НепрерывныйСтаж'): ИзменитьСтаж(Index, Action);
+    fi;
+  end;
+
+  func Поле_ПриВыводе (Cell :TemplateCell; Value :Variant; Action :Template.OutputTypes; var Format :String) :Variant;
+    if (Cell.Contents = 'НазначениеНаДолжность'): Return ЗаголовокНазначение(Cell.Frame);
+    elsif (Cell.Contents = 'Назначение'):         Return ОписаниеДолжности(Cell.Frame);
+    elsif (Cell.Contents = 'ККП'):                Return ОписаниеККП(Cell.Frame);
+    elsif (Cell.Contents = 'НепрерывныйСтаж'):    Return ОписаниеСтажа(Cell.Frame);
     fi;
   end;
 
@@ -49,15 +70,131 @@ inobject private
 
 -- _Обработчики событий прочих объектов шаблона. --
 
+  proc кн_ПриНажатии_Расчет (Sender: Button);
+    Интерфейс.Calc;
+  end;
+
+  proc кн_ПриНажатии_Сотрудник (Sender: Button);
+    var локСотрудник: Базовый.Данные.Субъект;
+    if (Record.СЗПД.Count > 0):
+      локСотрудник = Record.СЗПД[1].Назначение.Сотрудник;
+      if (локСотрудник <> nil):
+        Бюджет_ЗПиДД.Справочники.Субъект.редСотрудникР.Create.ShowEx(локСотрудник, Window.ModalWindow);
+      fi;
+    fi;
+  end;
+
 -- _Дополнительные команды. --
 
 -- _Вспомогательные методы.  --
 
-  func ОписаниеДолжности (локНазначение: Бюджет_Персонал.АтрибутыСотрудника.Назначение): string;
-    var интНазначение: Бюджет_Персонал.АтрибутыСубъекта.интНазначение;
-    Result = локНазначение.Должность.Имя;
-    интНазначение = Бюджет_Персонал.АтрибутыСубъекта.интНазначение.OpenRecord(локНазначение);
-    Return Result + ' <i>(' + интНазначение.ОписаниеПодразделения + ')';
+  func ЗаголовокНазначение (Index :Integer): string;
+    if (Index > 0) and (Index <= Record.СЗПД.Count) and (Record.СЗПД.Count = 1):
+      Return 'Назначение на должность';
+    elsif (Index > 0) and (Index <= Record.СЗПД.Count) and (Record.СЗПД.Count > 1):
+      Return 'Назначение на должность [' + Str(Index) + ']';
+    fi;
   end;
+
+  func ОписаниеДолжности (Index :Integer): string;
+    var локНазначение: Бюджет_Персонал.АтрибутыСотрудника.Назначение;
+    var интНазначение: Бюджет_Персонал.АтрибутыСубъекта.интНазначение;
+    if (Index > 0) and (Index <= Record.СЗПД.Count):
+      локНазначение = Record.СЗПД[Index].Назначение;
+      if (локНазначение <> nil):
+        Result = локНазначение.Должность.Имя;
+        интНазначение = Бюджет_Персонал.АтрибутыСубъекта.интНазначение.OpenRecord(локНазначение);
+        Return Result + ' <i>(' + интНазначение.ОписаниеПодразделения + ')';
+      fi;
+    fi;
+  end;
+
+  func ОписаниеККП (Index :Integer): string;
+    var локККП: string;
+    var locRecord :Справочники.Росстат.ККП;
+    if (Index > 0) and (Index <= Record.СЗПД.Count):
+      локККП = Record.СЗПД[Index].ККП;
+      if (локККП <> nil):
+        if (Record.фСИоЗП.НашеУчреждение.КодФормыСтатОтчетностиЗП <> nil):
+          locRecord = QueryRecord(Справочники.Росстат.ККП, 'Код="' + Record.фСИоЗП.НашеУчреждение.КодФормыСтатОтчетностиЗП + '.' + локККП + '"');
+          if (locRecord <> nil):
+            Return '( ' + locRecord.ККП + ' ) ' + locRecord.Имя;
+          fi;
+        else
+          Result = '( 600 ) Иной персонал';
+          Result = MarkInGray(Result);
+          Return MarkInItalic(Result);
+        fi;
+      else
+        with СИС2.СтроковыеФункции do
+          Result = '( 600 ) Иной персонал';
+          Result = MarkInGray(Result);
+          Return MarkInItalic(Result);
+        end;
+      fi;
+    fi;
+  end;
+
+  func ОписаниеСтажа (Index :Integer): string;
+    var локСтаж: string;
+    if (Index > 0) and (Index <= Record.СЗПД.Count):
+      локСтаж = Record.СЗПД[Index].НепрерывныйСтаж;
+      if (локСтаж in [nil,'н/д']):
+        Return 'н/д';
+      elsif Match(локСтаж, '??.??'):
+        Return Str(Int(SubStr(локСтаж,1,2))) + ' л ' + Str(Int(SubStr(локСтаж,4,2))) + ' м';
+      fi;
+    fi;
+  end;
+
+
+
+  proc ИзменитьККП (Index :Integer; Action :Template.EnterTypes);
+    var локРезультатВыбора: Бюджет_ЗПиДД_ПР366.Справочники.Росстат.ККП;
+    var locFlt: string;
+    if (Record.СЗПД.Count > 0) and (Index <= Record.СЗПД.Count):
+      if (Action = Template.Clear):
+        Record.СЗПД[Index].ККП = nil;
+      else
+        if (Record.фСИоЗП.НашеУчреждение.КодФормыСтатОтчетностиЗП <> nil):
+          locFlt = 'СтатФорма="' + Record.фСИоЗП.НашеУчреждение.КодФормыСтатОтчетностиЗП + '"';
+          if (CmOk = Справочники.Росстат.картККП.ВыполнитьВыбор(локРезультатВыбора, locFlt)):
+            Record.СЗПД[Index].ККП = локРезультатВыбора.ККП;
+          fi;
+        fi;
+      fi;
+    fi;
+  end;
+
+  proc ИзменитьОУТ (Index :Integer; Action :Template.EnterTypes);
+    var локРезультатВыбора: Бюджет_Персонал.Классификаторы.УсловияТруда;
+    if (Record.СЗПД.Count > 0) and (Index <= Record.СЗПД.Count):
+      if (Action = Template.Clear):
+        Record.СЗПД[Index].ОУТ = nil;
+      else
+        if (CmOk = Бюджет_Персонал.Классификаторы.картУсловияТруда.ВыполнитьВыбор(локРезультатВыбора)):
+          Record.СЗПД[Index].ОУТ = SubStr(локРезультатВыбора.Код, 2);
+        fi;
+      fi;
+    fi;
+  end;
+
+  proc ИзменитьСтаж (Index :Integer; Action :Template.EnterTypes);
+    var locValue: string;
+    if (Record.СЗПД.Count > 0) and (Index <= Record.СЗПД.Count):
+      if (Action = Template.Clear):
+        Record.СЗПД[Index].НепрерывныйСтаж = nil;
+      else
+        locValue = Record.СЗПД[Index].НепрерывныйСтаж;
+        if (locValue in [nil, 'н/д']):
+          locValue = '00.00';
+        fi;
+        if (CmOk = Служебные.блВводСтажа.ИзменитьЗначение(locValue)):
+          Record.СЗПД[Index].НепрерывныйСтаж = locValue;
+        fi;
+      fi;
+    fi;
+  end;
+
 
 end

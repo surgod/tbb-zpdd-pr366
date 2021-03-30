@@ -1,0 +1,31 @@
+class inherited СИС2.БазовыйБланк "";
+
+inclass public
+
+  func ПолучитьСекцию_КатегорияУчета :TemplateSection;
+    var locForm: Шаблоны.шаблонШД;
+    locForm = Self.Create;
+    Return locForm.секцКатегорияУчета;
+  end;
+
+inobject private
+
+  секцКатегорияУчета :TemplateSection;
+
+  func Поле_ПриВыводе(Cell :TemplateCell; Value :Variant; Action :Template.OutputTypes; var Format :String) :Variant;
+  end;
+
+  func Поле_ПриВходе(Cell :TemplateCell; Index :Integer; Action :Template.EnterTypes) :Logical;
+  end;
+
+  proc Поле_ПриРисовании_ККП(Cell :TemplateCell; Selected :Logical; var Color :Integer; var FieldColor :Integer; Font :Font);
+  end;
+
+  func Поле_ПриВыводе_ККП(Cell :TemplateCell; Value :Variant; Action :Template.OutputTypes; var Format :String) :Variant;
+  end;
+
+  func Поле_ПриВходе_ККП(Cell :TemplateCell; Index :Integer; Action :Template.EnterTypes) :Logical;
+  end;
+
+
+end

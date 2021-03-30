@@ -1,0 +1,22 @@
+class inherited СИС2.БазовыйБланк "";
+
+inclass public
+
+  func ПолучитьСекцию_ФормаСтатУчетаЗП :TemplateSection;
+    var locForm: Шаблоны.шаблонКонтрагентР;
+    locForm = Self.Create;
+    Return locForm.секцНастройкиУчетаПрочие_СтатФормаЗП;
+  end;
+
+inobject private
+
+  var секцНастройкиУчетаПрочие_СтатФормаЗП :TemplateSection;
+  var КодФормыСтатОтчетностиЗП: string;
+
+  proc шаблон_ПриСоздании (Context: Variant);
+    var locCell: TemplateCell;
+    locCell = Template.CellByField['КодФормыСтатОтчетностиЗП'];
+    ОбновитьСписокПоля(locCell, Константы.КодыСтатФорм);
+  end;
+
+end
