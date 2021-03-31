@@ -1,0 +1,112 @@
+Class inherited МашинаРеквизитов.Базовые.блРедакторСИнтерфейсом "Сведения о фонде заработной платы" , editor Отчетность.СИоЗП_ФондЗП;
+
+import СИС2 classes Константы, Функции, СтроковыеФункции, ФункцииДокумента;
+
+inclass public
+inobject private
+
+--{{ Свойства
+
+  var Интерфейс: Отчетность.интФондЗП;
+
+--}}
+
+-- _Конструкторы, визуализаторы. --
+
+-- _Обработчики событий шаблона. --
+
+inobject private
+
+  proc шаблон_ПриСоздании (Context: Variant);
+    inherited шаблон_ПриСоздании(Context);
+  end;
+
+-- _Обработчики событий клеток шаблона. --
+
+inobject private
+
+  func Поле_ПриНажатии (Cell :TemplateCell; Action :Template.ClickTypes) :Logical;
+  end;
+
+  func Поле_ПриВходе (Cell :TemplateCell; Index :Integer; Action :Template.EnterTypes) :Logical;
+  end;
+
+  func Поле_ПриПроверке(Cell :TemplateCell; Index :Integer; var Value :Variant) :Logical;
+    if ((Value as numeric) < 0):
+      DisplayMessage('Ввод отрицательных значений не допускается!');
+      Return;
+    else
+      Result = true;
+    fi;
+    if Result:
+      if (Cell.Contents = 'РасхКатФед'):
+        if ((Value as numeric) > РасхОбщФед):
+          DisplayMessage('ФЗП "указных" категорий персонала не может превышать общий фонд!');
+          Return;
+        else
+          Return true;
+        fi;
+      elsif (Cell.Contents = 'РасхКатСуб'):
+        if ((Value as numeric) > РасхОбщСуб):
+          DisplayMessage('ФЗП "указных" категорий персонала не может превышать общий фонд!');
+          Return;
+        else
+          Return true;
+        fi;
+      elsif (Cell.Contents = 'РасхКатМун'):
+        if ((Value as numeric) > РасхОбщМун):
+          DisplayMessage('ФЗП "указных" категорий персонала не может превышать общий фонд!');
+          Return;
+        else
+          Return true;
+        fi;
+      elsif (Cell.Contents = 'РасхКатОМС'):
+        if ((Value as numeric) > РасхОбщОМС):
+          DisplayMessage('ФЗП "указных" категорий персонала не может превышать общий фонд!');
+          Return;
+        else
+          Return true;
+        fi;
+      elsif (Cell.Contents = 'РасхКатИные'):
+        if ((Value as numeric) > РасхОбщИные):
+          DisplayMessage('ФЗП "указных" категорий персонала не может превышать общий фонд!');
+          Return;
+        else
+          Return true;
+        fi;
+      else
+        Result = inherited Поле_ПриПроверке(Cell, Index, Value);
+      fi;
+    fi;
+  end;
+
+
+  proc Поле_ПриВыходе (Cell: TemplateCell; Index: Integer);
+    Интерфейс.ПересчетИтогов;
+    inherited Поле_ПриВыходе(Cell, Index);
+  end;
+
+  func Поле_ПриВыводе (Cell :TemplateCell; Value :Variant; Action :Template.OutputTypes; var Format :String) :Variant;
+  end;
+
+  func Поле_ПриВыводе__.ЗаголовокОкнаФормы(Cell :TemplateCell; Value :Variant; Action :Template.OutputTypes; var Format :String) :Variant;
+    var aTxt: string[];
+    aTxt[1] = 'Объем расходов ФЗП';
+    if (ОтчетныйПериод <> nil):
+      AddInArray(aTxt, '<b->' + ОтчетныйПериод.Имя);
+    fi;
+    Return МассивСтрокВТекст(aTxt);
+  end;
+
+-- _Обработчики событий прочих объектов шаблона. --
+
+  proc кн_ПриНажатии_Расчет (Sender: Button);
+    Интерфейс.Calc;
+  end;
+
+-- _Дополнительные команды. --
+
+-- _Вспомогательные методы.  --
+
+
+end

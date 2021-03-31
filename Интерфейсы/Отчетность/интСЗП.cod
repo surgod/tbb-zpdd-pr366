@@ -19,6 +19,8 @@ inclass public
     var aFlt: string[];
     var locFlt: string;
     var locRecord: Отчетность.СИоЗП_СЗП;
+    var мНазначение :Бюджет_Персонал.АтрибутыСотрудника.Назначение[]; -- введенные назначения
+    var i, ii: integer;
     -- Создание новой записи или добавленние должности в существующую
     -- Поиск существующей записи
     aFlt[1] = 'фСИоЗП=' + Str(locOwnerRecord);
@@ -27,15 +29,26 @@ inclass public
     locFlt = ТББ_Базовый.Фильтры.СложитьСтрокиФильтраПоИ(aFlt);
     locRecord = СИС2.ФункцииДокумента.QueryRecord(Отчетность.СИоЗП_СЗП, locFlt);
     if (locRecord <> nil): -- запись существует
-      with locRecord.СЗПД.AddEx do
-        Назначение = локНазначение;
+      ii = locRecord.СЗПД.Count;
+      for i = 1 ..ii do
+       СИС2.Функции.AddInArray(мНазначение, locRecord.СЗПД[i].Назначение);
+      od;
+      if not (локНазначение in мНазначение):
+        with locRecord.СЗПД.AddEx do
+          Назначение = локНазначение;
+          if withMsg:
+            locMsg = 'Должность "' + локНазначение.Должность.Имя + ' добавлена в отчетную карточку сотрудника ' + локНазначение.Сотрудник.Физлицо.Имя + '.';
+            ТББ_Базовый.Console.Message(locMsg);
+          fi;
+          СИС2.ФункцииДокумента.RecordPostIfNeed(locRecord);
+          Return OpenRecord(locRecord);
+        end;
+      else
         if withMsg:
-          locMsg = 'Должность "' + локНазначение.Должность.Имя + ' добавлена в отчетную карточку сотрудника ' + локНазначение.Сотрудник.Физлицо.Имя + '.';
+          locMsg = 'Должность "' + локНазначение.Должность.Имя + ' уже добавлена в отчетную карточку сотрудника ' + локНазначение.Сотрудник.Физлицо.Имя + '. Повторное добавление не допускается.';
           ТББ_Базовый.Console.Message(locMsg);
         fi;
-        СИС2.ФункцииДокумента.RecordPostIfNeed(locRecord);
-        Return OpenRecord(locRecord);
-      end;
+      fi;
     else
       Result = Self.Create;
       Result.Record.фСИоЗП = locOwnerRecord;

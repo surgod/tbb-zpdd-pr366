@@ -121,6 +121,24 @@ inobject private
       elsif (ii > 2):
         Return Rec.Период_СЗП[1].Имя + ' - ' + Rec.Период_СЗП[ii].Имя;
       fi;
+    elsif (Column.FieldName = 'ОтчетныйПериод2'):
+      ii = Rec.Период_ФондЗП.Count;
+      if (ii = 1):
+        Return Rec.Период_ФондЗП[1].Имя;
+      elsif (ii = 2):
+        Return Rec.Период_ФондЗП[1].Имя + ', ' + Rec.Период_ФондЗП[2].Имя;
+      elsif (ii > 2):
+        Return Rec.Период_ФондЗП[1].Имя + ' - ' + Rec.Период_ФондЗП[ii].Имя;
+      fi;
+    elsif (Column.FieldName = 'ОтчетныйПериод3'):
+      ii = Rec.Период_СЗПРук.Count;
+      if (ii = 1):
+        Return Rec.Период_СЗПРук[1].Имя;
+      elsif (ii = 2):
+        Return Rec.Период_СЗПРук[1].Имя + ', ' + Rec.Период_СЗПРук[2].Имя;
+      elsif (ii > 2):
+        Return Rec.Период_СЗПРук[1].Имя + ' - ' + Rec.Период_СЗПРук[ii].Имя;
+      fi;
     fi;
   end;
 
