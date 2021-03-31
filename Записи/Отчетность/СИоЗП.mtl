@@ -10,7 +10,9 @@
     field ОКФС  :string;
     field КТО   :string;
     field ОКОГУ :string;
-    --field КодСтатОтчетности :string;
+    ---------------------
+    field РегНомерПфр :string;
+    field ТоПфр       :string;
   end;
 
 
