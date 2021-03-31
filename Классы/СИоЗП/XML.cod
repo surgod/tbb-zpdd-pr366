@@ -55,7 +55,7 @@ class "";
     if ЕстьВсеДанныеДляСозданияФайла:
       if (CmOk = ВыборПутиЭкспорта):
         ClearTrace;
-        locXml = TUL.SimpleXML.CreateEx;
+        locXml = TUL.SimpleXML.CreateEx(false);
         ПолучитьИмяФайла;
         СоздатьСтруктуру_ЭДПФР;
         locXml.ToFile(ПутьЭкспорта + '/' + локИмяФайла + '.XML', 'UTF-8');
@@ -108,7 +108,6 @@ class "";
     КодТоПфр = Record.ТоПфр;
     КодДокумента = 'СИоЗП';
     РегНомер = Record.РегНомерПфр;
-    РегНомер = ExtractWord(РегНомер, 1) + ExtractWord(РегНомер, 2) + ExtractWord(РегНомер, 3) + ExtractWord(РегНомер, 4);
     GGGG = PadL(Str(Year(today)), 4, '0');
     MM   = PadL(Str(Mon(today)), 2, '0');
     DD   = PadL(Str(Day(today)), 2, '0');
@@ -118,8 +117,8 @@ class "";
   end;
 
   proc СоздатьСтруктуру_ЭДПФР;
-    locXml = TUL.SimpleXML.CreateEx(false,false); -- locXml.ToRes('<?xml version="1.0" encoding="utf-8"?>');
     locXml.ToRes('<ЭДПФР xmlns="http://пф.рф/СИоЗП/2021-03-15" xmlns:УТ2="http://пф.рф/УТ/2017-08-21" xmlns:АФ5="http://пф.рф/АФ/2018-12-07">');
+    locXml.BreakLine;
       СоздатьСтруктуру_СИоЗП;
     locXml.ToRes('</ЭДПФР>');
   end;
@@ -136,133 +135,202 @@ class "";
 
   proc СоздатьСтруктуру_Организация;
     locXml.OpenTag('Организация', nil);
+      locXml.BreakLine;
       locXml.CreateTag('УТ2:ИНН', Record.ИНН , nil);
+      locXml.BreakLine;
       locXml.CreateTag('УТ2:КПП', Record.КПП , nil);
+      locXml.BreakLine;
       locXml.CreateTag('ОКФС', Record.ОКФС , nil);
+      locXml.BreakLine;
       locXml.CreateTag('КТО', Record.КТО , nil);
+      locXml.BreakLine;
       locXml.CreateTag('ОКОГУ', Record.ОКОГУ , nil);
+      locXml.BreakLine;
     locXml.CloseTag;
+    locXml.BreakLine;
   end;
 
   proc СоздатьСтруктуру_СЗП;
-    var cRecord: Бюджет_ЗПиДД_ПР366.Отчетность.СИоЗП_СЗП;
     locXml.OpenTag('СЗП', nil);
+    locXml.BreakLine;
+      СоздатьСтруктуры_ПериодСЗП;
+    locXml.CloseTag;
+    locXml.BreakLine;
+  end;
+
+  proc СоздатьСтруктуры_ПериодСЗП;
+    var p: integer;
+    for p = 1 .. Record.Период_СЗП.Count do
+      locXml.OpenTag('Период', nil);
+      locXml.BreakLine;
+        СоздатьСтруктуру_ОтчетныйПериодСЗП(Record.Период_СЗП[p]);
+        СоздатьСтруктуры_Работник(Record.Период_СЗП[p]);
+      locXml.CloseTag;
+      locXml.BreakLine;
+    od;
+  end;
+
+  proc СоздатьСтруктуру_ОтчетныйПериодСЗП(cPeriod: ТББ_Базовый.Справочники.ПериодыРасчета);
+    locXml.OpenTag('ОтчетныйПериод', nil);
+    locXml.BreakLine;
+      locXml.CreateTag('Год', SubStr(cPeriod.Код, 1, 4) , nil);
+      locXml.BreakLine;
+      locXml.CreateTag('Месяц', SubStr(cPeriod.Код, 8, 2) , nil);
+      locXml.BreakLine;
+    locXml.CloseTag;
+    locXml.BreakLine;
+  end;
+
+  proc СоздатьСтруктуры_Работник(cPeriod: ТББ_Базовый.Справочники.ПериодыРасчета);
+    var aFlt: string[];
+    var cRecord: Бюджет_ЗПиДД_ПР366.Отчетность.СИоЗП_СЗП;
     with Query.Create([Бюджет_ЗПиДД_ПР366.Отчетность.СИоЗП_СЗП]) do
-      Filter = 'фСИоЗП=' + Str(Self.Record);
+      aFlt[1] = 'фСИоЗП=' + Str(Self.Record);
+      aFlt[2] = 'ОтчетныйПериод=' + Str(cPeriod);
+      Filter = ТББ_Базовый.Фильтры.СложитьСтрокиФильтраПоИ(aFlt);
       Order = 'Фамилия,Имя,Отчество';
       Select;
       while not Eof do
         cRecord = Current as Бюджет_ЗПиДД_ПР366.Отчетность.СИоЗП_СЗП;
-        СоздатьСтруктуру_ПериодСЗП(cRecord);
         СоздатьСтруктуру_Работник(cRecord);
         Next;
       od;
     end;
-    locXml.CloseTag;
-  end;
-
-  proc СоздатьСтруктуру_ПериодСЗП(cRecord: Бюджет_ЗПиДД_ПР366.Отчетность.СИоЗП_СЗП);
-    СоздатьСтруктуру_ОтчетныйПериод(cRecord);
-  end;
-
-  proc СоздатьСтруктуру_ОтчетныйПериод(cRecord: Бюджет_ЗПиДД_ПР366.Отчетность.СИоЗП_СЗП);
-    locXml.OpenTag('ОтчетныйПериод', nil);
-      locXml.CreateTag('Год', SubStr(cRecord.ОтчетныйПериод.Код, 1, 4) , nil);
-      locXml.CreateTag('Месяц', SubStr(cRecord.ОтчетныйПериод.Код, 8, 2) , nil);
-    locXml.CloseTag;
   end;
 
   proc СоздатьСтруктуру_Работник(cRecord: Бюджет_ЗПиДД_ПР366.Отчетность.СИоЗП_СЗП);
     var Index: integer;
-    СоздатьСтруктуру_ФИО(cRecord);
-    locXml.CreateTag('УТ2:СНИЛС', cRecord.СНИЛС , nil);
-    locXml.CreateTag('ОбщийСтаж', Str(cRecord.ОбщийСтаж, '0') , nil);
-    for Index = 1 .. cRecord.СЗПД.Count do
-      СоздатьСтруктуру_СЗПД(cRecord, Index);
-    od;
+    locXml.OpenTag('Работник', nil);
+    locXml.BreakLine;
+      СоздатьСтруктуру_ФИО(cRecord);
+      locXml.CreateTag('УТ2:СНИЛС', cRecord.СНИЛС , nil);
+      locXml.CreateTag('ОбщийСтаж', Str(cRecord.ОбщийСтаж, '0') , nil);
+      for Index = 1 .. cRecord.СЗПД.Count do
+        СоздатьСтруктуру_СЗПД(cRecord, Index);
+      od;
+    locXml.CloseTag;
+    locXml.BreakLine;
   end;
 
   proc СоздатьСтруктуру_ФИО(cRecord: Бюджет_ЗПиДД_ПР366.Отчетность.СИоЗП_СЗП);
     locXml.OpenTag('УТ2:ФИО', nil);
+      locXml.BreakLine;
       if (cRecord.Фамилия <> nil):
         locXml.CreateTag('УТ2:Фамилия',  cRecord.Фамилия, nil);
+        locXml.BreakLine;
       fi;
       if (cRecord.Имя <> nil):
         locXml.CreateTag('УТ2:Имя',      cRecord.Имя, nil);
+        locXml.BreakLine;
       fi;
       if (cRecord.Отчество <> nil):
         locXml.CreateTag('УТ2:Отчество', cRecord.Отчество, nil);
+        locXml.BreakLine;
       fi;
     locXml.CloseTag;
+    locXml.BreakLine;
   end;
 
   proc СоздатьСтруктуру_СЗПД(cRecord: Бюджет_ЗПиДД_ПР366.Отчетность.СИоЗП_СЗП; Index: integer);
     locXml.OpenTag('СЗПД', nil);
-      locXml.CreateTag('Должность',          cRecord.СЗПД[Index].Должность,                     nil);
-      locXml.CreateTag('ККП',                cRecord.СЗПД[Index].ККП,                           nil);
-      locXml.CreateTag('УсловиеЗанятости',   Str(cRecord.СЗПД[Index].УсловиеЗанятости),         nil);
-      locXml.CreateTag('Ставка',             Str(cRecord.СЗПД[Index].Ставка, '##.###;;'),       nil);
-      locXml.CreateTag('РабВремяНорма',      Str(cRecord.СЗПД[Index].РабВремяНорма, '##.##;;'), nil);
-      locXml.CreateTag('РабВремяФакт',       Str(cRecord.СЗПД[Index].РабВремяФакт, '##.##;;'),  nil);
+      locXml.BreakLine;
+      locXml.CreateTag('Должность', cRecord.СЗПД[Index].Должность, nil);
+      locXml.BreakLine;
+      locXml.CreateTag('ККП', cRecord.СЗПД[Index].ККП, nil);
+      locXml.BreakLine;
+      locXml.CreateTag('УсловиеЗанятости', Str(cRecord.СЗПД[Index].УсловиеЗанятости), nil);
+      locXml.BreakLine;
+      locXml.CreateTag('Ставка', Str(cRecord.СЗПД[Index].Ставка, '#0.###;;'), nil);
+      locXml.BreakLine;
+      locXml.CreateTag('РабВремяНорма', Str(cRecord.СЗПД[Index].РабВремяНорма, '##0.##;;'), nil);
+      locXml.BreakLine;
+      locXml.CreateTag('РабВремяФакт', Str(cRecord.СЗПД[Index].РабВремяФакт, '##0.##;;'), nil);
+      locXml.BreakLine;
       if (cRecord.СЗПД[Index].НачисленияТариф > 0):
         locXml.CreateTag('НачисленияТариф', Str(cRecord.СЗПД[Index].НачисленияТариф, '##0.00;;'), nil);
+        locXml.BreakLine;
       fi;
       if (cRecord.СЗПД[Index].ОУТ <> ''):
         locXml.CreateTag('НачисленияТариф', cRecord.СЗПД[Index].ОУТ, nil);
+        locXml.BreakLine;
       fi;
       if (cRecord.СЗПД[Index].НачисленияОУТ > 0):
         locXml.CreateTag('НачисленияОУТ', Str(cRecord.СЗПД[Index].НачисленияОУТ, '##0.00;;'), nil);
+        locXml.BreakLine;
       fi;
       if (cRecord.СЗПД[Index].ДоплатаСовмещение > 0):
         locXml.CreateTag('ДоплатаСовмещение', Str(cRecord.СЗПД[Index].ДоплатаСовмещение, '##0.00;;'), nil);
+        locXml.BreakLine;
       fi;
       if (cRecord.СЗПД[Index].НачисленияИныеФед > 0):
         locXml.CreateTag('НачисленияИныеФед', Str(cRecord.СЗПД[Index].НачисленияИныеФед, '##0.00;;'), nil);
+        locXml.BreakLine;
       fi;
       if (cRecord.СЗПД[Index].НачисленияИныеРег > 0):
         locXml.CreateTag('НачисленияИныеРег', Str(cRecord.СЗПД[Index].НачисленияИныеРег, '##0.00;;'), nil);
+        locXml.BreakLine;
       fi;
       if (cRecord.СЗПД[Index].НачисленияПремии > 0):
         locXml.CreateTag('НачисленияПремии', Str(cRecord.СЗПД[Index].НачисленияПремии, '##0.00;;'), nil);
+        locXml.BreakLine;
       fi;
-      locXml.CreateTag('НепрерывныйСтаж', cRecord.СЗПД[Index].ККП, nil);
+      if (cRecord.СЗПД[Index].НепрерывныйСтаж = ''):
+        locXml.CreateTag('НепрерывныйСтаж', 'н/д', nil);
+        locXml.BreakLine;
+      else
+        locXml.CreateTag('НепрерывныйСтаж', cRecord.СЗПД[Index].НепрерывныйСтаж, nil);
+        locXml.BreakLine;
+      fi;
       if (cRecord.СЗПД[Index].ДоплатаСтаж > 0):
         locXml.CreateTag('ДоплатаСтаж', Str(cRecord.СЗПД[Index].ДоплатаСтаж, '##0.00;;'), nil);
+        locXml.BreakLine;
       fi;
       if (cRecord.СЗПД[Index].ДоплатаСМ > 0):
         locXml.CreateTag('ДоплатаСМ', Str(cRecord.СЗПД[Index].ДоплатаСМ, '##0.00;;'), nil);
+        locXml.BreakLine;
       fi;
       if (cRecord.СЗПД[Index].КвалКатегория > 0):
         locXml.CreateTag('КвалКатегория', Str(cRecord.СЗПД[Index].КвалКатегория, '0'), nil);
+        locXml.BreakLine;
       fi;
       if (cRecord.СЗПД[Index].ДоплатаКвалКат > 0):
         locXml.CreateTag('ДоплатаКвалКат', Str(cRecord.СЗПД[Index].ДоплатаКвалКат, '##0.00;;'), nil);
+        locXml.BreakLine;
       fi;
       if (cRecord.СЗПД[Index].УченаяСтепень > 0):
         locXml.CreateTag('УченаяСтепень', Str(cRecord.СЗПД[Index].УченаяСтепень, '0'), nil);
+        locXml.BreakLine;
       fi;
       if (cRecord.СЗПД[Index].ДоплатаУС > 0):
         locXml.CreateTag('ДоплатаУС', Str(cRecord.СЗПД[Index].ДоплатаУС, '##0.00;;'), nil);
+        locXml.BreakLine;
       fi;
       if (cRecord.СЗПД[Index].ДоплатаНаставничество > 0):
         locXml.CreateTag('ДоплатаНаставничество', Str(cRecord.СЗПД[Index].ДоплатаНаставничество, '##0.00;;'), nil);
+        locXml.BreakLine;
       fi;
       if (cRecord.СЗПД[Index].ДоплатаМолодСпец > 0):
         locXml.CreateTag('ДоплатаМолодСпец', Str(cRecord.СЗПД[Index].ДоплатаМолодСпец, '##0.00;;'), nil);
+        locXml.BreakLine;
       fi;
       if (cRecord.СЗПД[Index].ВыплатыИныеСтимул > 0):
         locXml.CreateTag('ВыплатыИныеСтимул', Str(cRecord.СЗПД[Index].ВыплатыИныеСтимул, '##0.00;;'), nil);
+        locXml.BreakLine;
       fi;
       if (cRecord.СЗПД[Index].ВыплатыПрочие > 0):
         locXml.CreateTag('ВыплатыПрочие', Str(cRecord.СЗПД[Index].ВыплатыПрочие, '##0.00;;'), nil);
+        locXml.BreakLine;
       fi;
       if (cRecord.СЗПД[Index].ВыплатыКомпенс > 0):
         locXml.CreateTag('ВыплатыКомпенс', Str(cRecord.СЗПД[Index].ВыплатыКомпенс, '##0.00;;'), nil);
+        locXml.BreakLine;
       fi;
       if (cRecord.СЗПД[Index].НачисленияИтого > 0):
         locXml.CreateTag('НачисленияИтого', Str(cRecord.СЗПД[Index].НачисленияИтого, '##0.00;;'), nil);
+        locXml.BreakLine;
       fi;
     locXml.CloseTag;
+    locXml.BreakLine;
   end;
 
   ---
@@ -285,36 +353,48 @@ class "";
 
   proc СоздатьСтруктуру_ПериодФондЗП(cRecord: Бюджет_ЗПиДД_ПР366.Отчетность.СИоЗП_ФондЗП);
     locXml.OpenTag('Период', nil);
+      locXml.BreakLine;
       locXml.CreateTag('Год', cRecord.ОтчетныйПериод.Код, nil);
+      locXml.BreakLine;
       if (cRecord.РасхОбщФед > 0):
         locXml.CreateTag('РасхОбщФед', Str(cRecord.РасхОбщФед, '##0.00;;'), nil);
+        locXml.BreakLine;
       fi;
       if (cRecord.РасхКатФед > 0):
         locXml.CreateTag('РасхКатФед', Str(cRecord.РасхКатФед, '##0.00;;'), nil);
+        locXml.BreakLine;
       fi;
       if (cRecord.РасхОбщСуб > 0):
         locXml.CreateTag('РасхОбщСуб', Str(cRecord.РасхОбщСуб, '##0.00;;'), nil);
+        locXml.BreakLine;
       fi;
       if (cRecord.РасхКатСуб > 0):
         locXml.CreateTag('РасхКатСуб', Str(cRecord.РасхКатСуб, '##0.00;;'), nil);
+        locXml.BreakLine;
       fi;
       if (cRecord.РасхОбщМун > 0):
         locXml.CreateTag('РасхОбщМун', Str(cRecord.РасхОбщМун, '##0.00;;'), nil);
+        locXml.BreakLine;
       fi;
       if (cRecord.РасхКатМун > 0):
         locXml.CreateTag('РасхКатМун', Str(cRecord.РасхКатМун, '##0.00;;'), nil);
+        locXml.BreakLine;
       fi;
       if (cRecord.РасхОбщОМС > 0):
         locXml.CreateTag('РасхОбщОМС', Str(cRecord.РасхОбщОМС, '##0.00;;'), nil);
+        locXml.BreakLine;
       fi;
       if (cRecord.РасхКатОМС > 0):
         locXml.CreateTag('РасхКатОМС', Str(cRecord.РасхКатОМС, '##0.00;;'), nil);
+        locXml.BreakLine;
       fi;
       if (cRecord.РасхОбщИные > 0):
         locXml.CreateTag('РасхОбщИные', Str(cRecord.РасхОбщИные, '##0.00;;'), nil);
+        locXml.BreakLine;
       fi;
       if (cRecord.РасхКатИные > 0):
         locXml.CreateTag('РасхКатИные', Str(cRecord.РасхКатИные, '##0.00;;'), nil);
+        locXml.BreakLine;
       fi;
     locXml.CloseTag;
   end;
@@ -324,6 +404,7 @@ class "";
   proc СоздатьСтруктуру_СЗПРук;
     var cRecord: Бюджет_ЗПиДД_ПР366.Отчетность.СИоЗП_СЗПРук;
     locXml.OpenTag('СЗПРук', nil);
+    locXml.BreakLine;
     with Query.Create([Бюджет_ЗПиДД_ПР366.Отчетность.СИоЗП_СЗПРук]) do
       Filter = 'фСИоЗП=' + Str(Self.Record);
       Order = 'ОтчетныйПериод.Код';
@@ -335,24 +416,32 @@ class "";
       od;
     end;
     locXml.CloseTag;
+    locXml.BreakLine;
   end;
 
   proc СоздатьСтруктуру_ПериодСЗПРук(cRecord: Бюджет_ЗПиДД_ПР366.Отчетность.СИоЗП_СЗПРук);
     locXml.OpenTag('Период', nil);
+    locXml.BreakLine;
       locXml.CreateTag('Год', cRecord.ОтчетныйПериод.Код, nil);
+      locXml.BreakLine;
       if (cRecord.СредЗПРук > 0):
         locXml.CreateTag('СредЗПРук', Str(cRecord.СредЗПРук, '##0.00;;'), nil);
+        locXml.BreakLine;
       fi;
       if (cRecord.СредЗПЗам > 0):
         locXml.CreateTag('СредЗПЗам', Str(cRecord.СредЗПЗам, '##0.00;;'), nil);
+        locXml.BreakLine;
       fi;
       if (cRecord.СредЗПГлБух > 0):
         locXml.CreateTag('СредЗПГлБух', Str(cRecord.СредЗПГлБух, '##0.00;;'), nil);
+        locXml.BreakLine;
       fi;
       if (cRecord.СредЗПРаб > 0):
         locXml.CreateTag('СредЗПРаб', Str(cRecord.СредЗПРаб, '##0.00;;'), nil);
+        locXml.BreakLine;
       fi;
     locXml.CloseTag;
+    locXml.BreakLine;
   end;
 
   ---
@@ -361,11 +450,15 @@ class "";
     var locNow: Date;
     var locValueS: string;
     locXml.OpenTag('СлужебнаяИнформация', nil);
+    locXml.BreakLine;
       locXml.CreateTag('АФ5:GUID', locGUID, nil);
+      locXml.BreakLine;
       locNow = Now;
       locValueS = Str(locNow, 'YYYY-MM-DD') + 'T' +Str(locNow, 'hh:mm:ss') + '+03:00';
       locXml.CreateTag('АФ5:ДатаВремя', locValueS, nil);
+      locXml.BreakLine;
     locXml.CloseTag;
+    locXml.BreakLine;
   end;
 
 

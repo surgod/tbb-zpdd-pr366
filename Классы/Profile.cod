@@ -1,7 +1,41 @@
 class "";
 
-inclass
+  Import СИС2 classes ФункцииДокумента;
 
-inobject
+  inclass public
+
+  proc PreInit;
+  end;
+
+  proc GetSessionInfo;
+    var iComment, iRevision: string;
+    iComment = BaseInfo.ProjectByName[Self.ClassProject].Comment;
+    if (WordsCount(iComment) = 1) and (Pos('#', iComment) = 1):
+      iRevision = SubStr(iComment, 2);
+    elsif (WordsCount(iComment) > 1) and (Pos('#', iComment) > 1):
+      iRevision = ExtractWord(iComment, 2, '#');
+    fi;
+    if (iRevision <> nil):
+      iRevision = ' # ' + iRevision;
+    fi;
+    with СИС2.Константы do
+      AddSessionInfo(СИС2.Константы.ЗаголовокИнформацииОРелизахТББ, 'Бюджет_ЗПиДД_ПР366 : ' + СИС2.СтроковыеФункции.TAB(2) + Str(Константы.ПолучитьВерсиюПроекта, '0.000') + iRevision);
+    end;
+  end;
+
+  inclass private
+
+  proc Init;
+    --var локВерсияПроектаПриСтарте: numeric;
+    with ТББ_Базовый.ВосстановлениеБазы do
+      --локВерсияПроектаПриСтарте = ВерсияПроектаПриСтарте(Self.ClassProject);
+      if НоваяИнфБазаДляПроекта(Self.ClassProject):
+
+
+      fi;
+      УстановитьНовуюВерсиюИнфБазыДляПроекта(Self.ClassProject);-- если номер версии еще не сохранен
+    end;
+  end;
+
 
 end
