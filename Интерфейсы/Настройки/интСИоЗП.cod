@@ -14,12 +14,11 @@ inclass public
 
   func ОткрытьПоЗаписи synonym OpenRecord (locRecord: Настройки.СИоЗП): Настройки.интСИоЗП;
     Result = inherited Create;
-    Result.SetRecord(locRecord);
---    Result = FindInterfaceByRecord(locRecord);
---    if (Result = nil):
---      Result = inherited Create;
---      Result.SetRecord(locRecord);
---    fi;
+    Result = FindInterfaceByRecord(locRecord);
+    if (Result = nil):
+      Result = inherited Create;
+      Result.SetRecord(locRecord);
+    fi;
   end;
 
   func ОткрытьДляУчреждения synonym OpenForSubject (locSubject: Базовый.Данные.Субъект): Настройки.интСИоЗП;
@@ -37,6 +36,18 @@ inclass public
     else
       Return OpenRecord(locRecord);
     fi;
+  end;
+
+  -- Поиск существующего экземпляра класса интерфейса по записи
+  func FindInterfaceByRecord (locRecord: Record; locCreate: Boolean = false): ТББ_Базовый.Базовые.интЗаписьСрв;
+    var i, ii: Integer;
+    ii = Self.ObjectsCount;
+    for i = 1 .. ii do
+      if (Objects[i].Record = locRecord):
+        Return Objects[i];
+      fi;
+    od;
+    Return If(locCreate, OpenRecord(locRecord), nil);
   end;
 
 inobject public

@@ -12,6 +12,7 @@ inclass private
 
 inobject private
   var ГодСвОбъекта: integer;
+
 --}}
 
 --2_ Конструкторы, визуализаторы0. --
@@ -108,6 +109,21 @@ inobject private
 --2_ Обработчики событий прочих объектов шаблона0. --
 
 --2_ Обработчики столбцов (полей) картотеки0. --
+
+  func картПоле_ПриВыводе (Column: CardfileColumn; Rec: Бюджет_ЗПиДД_ПР366.Отчетность.СИоЗП; Action: Template.OutputTypes; var Format: String): Variant;
+    var ii: integer;
+    if (Column.FieldName = 'ОтчетныйПериод1'):
+      ii = Rec.Период_СЗП.Count;
+      if (ii = 1):
+        Return Rec.Период_СЗП[1].Имя;
+      elsif (ii = 2):
+        Return Rec.Период_СЗП[1].Имя + ', ' + Rec.Период_СЗП[2].Имя;
+      elsif (ii > 2):
+        Return Rec.Период_СЗП[1].Имя + ' - ' + Rec.Период_СЗП[ii].Имя;
+      fi;
+    fi;
+  end;
+
 
 --2_ Дополнительные команды0. --
 

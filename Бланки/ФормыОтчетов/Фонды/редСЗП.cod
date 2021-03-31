@@ -9,7 +9,6 @@ inobject private
 
   var Интерфейс: Отчетность.интСЗП;
 
-
 --}}
 
 -- _Конструкторы, визуализаторы. --
@@ -26,7 +25,6 @@ inobject private
     ОбновитьСписокПоля(Template.CellByField['УченаяСтепень'], Константы.УчСтепени);
   end;
 
-
 -- _Обработчики событий клеток шаблона. --
 
 inobject private
@@ -35,6 +33,7 @@ inobject private
     if (Cell.Contents = 'x'):
       if (Cell.Frame > 0) and (Cell.Frame <= Record.СЗПД.Count) and (Record.СЗПД.Count > 1):
         СЗПД.Delete(Cell.Frame);
+        Интерфейс.Вычислить_НачисленияВсего;
       elsif (Cell.Frame > 0) and (Cell.Frame <= Record.СЗПД.Count) and (Record.СЗПД.Count = 1):
         DisplayMessage('Удаление единствоенной должности не допускается. При необходиомсти можно удалить карточку из р.1 целиком.');
       fi;
@@ -48,6 +47,18 @@ inobject private
     fi;
   end;
 
+  proc Поле_ПриВыходе (Cell: TemplateCell; Index: Integer);
+    if (Cell.Contents in ['НачисленияТариф','ДоплатаСовмещение',
+                          'НачисленияИныеФед','НачисленияИныеРег','НачисленияПремии',
+                          'ДоплатаСтаж','ДоплатаСМ','ДоплатаКвалКат','ДоплатаУС',
+                          'ДоплатаНаставничество','ДоплатаМолодСпец',
+                          'ВыплатыИныеСтимул','ВыплатыПрочие','ВыплатыКомпенс']):
+      Интерфейс.ПересчетИтогов(Index);
+    else
+      inherited Поле_ПриВыходе(Cell, Index);
+    fi;
+  end;
+
   func Поле_ПриВыводе (Cell :TemplateCell; Value :Variant; Action :Template.OutputTypes; var Format :String) :Variant;
     if (Cell.Contents = 'НазначениеНаДолжность'): Return ЗаголовокНазначение(Cell.Frame);
     elsif (Cell.Contents = 'Назначение'):         Return ОписаниеДолжности(Cell.Frame);
@@ -55,7 +66,6 @@ inobject private
     elsif (Cell.Contents = 'НепрерывныйСтаж'):    Return ОписаниеСтажа(Cell.Frame);
     fi;
   end;
-
 
   func Поле_ПриВыводе__.ЗаголовокОкнаФормы(Cell :TemplateCell; Value :Variant; Action :Template.OutputTypes; var Format :String) :Variant;
     var aTxt: string[];
@@ -80,6 +90,21 @@ inobject private
       локСотрудник = Record.СЗПД[1].Назначение.Сотрудник;
       if (локСотрудник <> nil):
         Бюджет_ЗПиДД.Справочники.Субъект.редСотрудникР.Create.ShowEx(локСотрудник, Window.ModalWindow);
+      fi;
+    fi;
+  end;
+
+  proc кн_ПриНажатии_АктыРасчетов (Sender: Button);
+    var локСотрудник: Базовый.Данные.Субъект;
+    var aFlt: string[];
+    var locFlt: string;
+    if (Record.СЗПД.Count > 0):
+      локСотрудник = Record.СЗПД[1].Назначение.Сотрудник;
+      if (локСотрудник <> nil):
+        aFlt[1] = 'Сотрудник=' + Str(локСотрудник);
+        aFlt[2] = 'УчетныйПериод.Код="' + Str(ОтчетныйПериод.Код + '"');
+        locFlt = ТББ_Базовый.Фильтры.СложитьСтрокиФильтраПоИ(aFlt);
+        Бюджет_ЗПиДД.Рабочие.картАктыРасчета.OpenModal(локСотрудник.НашеУчреждение, Бюджет_Персонал.КонстантыГруппНачислений.ГруппаНачисленийЗарплата, nil, nil, locFlt);
       fi;
     fi;
   end;
@@ -171,9 +196,13 @@ inobject private
     if (Record.СЗПД.Count > 0) and (Index <= Record.СЗПД.Count):
       if (Action = Template.Clear):
         Record.СЗПД[Index].ОУТ = nil;
+        Интерфейс.Вычислить_НачисленияОУТ(Index);
+        Интерфейс.Вычислить_НачисленияВсего;
       else
         if (CmOk = Бюджет_Персонал.Классификаторы.картУсловияТруда.ВыполнитьВыбор(локРезультатВыбора)):
           Record.СЗПД[Index].ОУТ = SubStr(локРезультатВыбора.Код, 2);
+          Интерфейс.Вычислить_НачисленияОУТ(Index);
+          Интерфейс.Вычислить_НачисленияВсего;
         fi;
       fi;
     fi;

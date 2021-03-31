@@ -224,6 +224,10 @@ inobject private
     Template.EndModify;
   end;
 
+  proc кнПриНажатии_Расчет (Sender: Button);
+    Интерфейс.ВыполнениеРасчета;
+  end;
+
   proc кнПриНажатии_ДобавитьСведения (Sender: Button);
     var locGridValue: Variant[];
     var locGridName, locFrameName, locParentFrameName: string;
@@ -307,8 +311,22 @@ inobject private
       ДобавитьСтолбецКартотеки_Раздел1_Работник_Имя;
       ДобавитьСтолбецКартотеки_Раздел1_Работник_Отчество;
       ДобавитьСтолбецКартотеки_Раздел1_ОтчетныйПериод;
-      --ДобавитьСтолбецКартотеки_Раздел1_СумНалУд;
-      --ДобавитьСтолбецКартотеки_Раздел1_СумНалВоз;
+      ДобавитьСтолбецКартотеки_Раздел1_СНИЛС;
+      ДобавитьСтолбецКартотеки_Раздел1_НачисленияТариф;
+      ДобавитьСтолбецКартотеки_Раздел1_ДоплатаСовмещение;
+      ДобавитьСтолбецКартотеки_Раздел1_НачисленияИныеФед;
+      ДобавитьСтолбецКартотеки_Раздел1_НачисленияИныеРег;
+      ДобавитьСтолбецКартотеки_Раздел1_НачисленияПремии;
+      ДобавитьСтолбецКартотеки_Раздел1_ДоплатаСтаж;
+      ДобавитьСтолбецКартотеки_Раздел1_ДоплатаСМ;
+      ДобавитьСтолбецКартотеки_Раздел1_ДоплатаКвалКат;
+      ДобавитьСтолбецКартотеки_Раздел1_ДоплатаУС;
+      ДобавитьСтолбецКартотеки_Раздел1_ДоплатаНаставничество;
+      ДобавитьСтолбецКартотеки_Раздел1_ДоплатаМолодСпец;
+      ДобавитьСтолбецКартотеки_Раздел1_ВыплатыИныеСтимул;
+      ДобавитьСтолбецКартотеки_Раздел1_ВыплатыПрочие;
+      ДобавитьСтолбецКартотеки_Раздел1_ВыплатыКомпенс;
+      ДобавитьСтолбецКартотеки_Раздел1_НачисленияИтого;
     fi;
   end;
 
@@ -472,6 +490,309 @@ inobject private
       Font.Color = clGray;
     end;
   end;
+
+  proc ДобавитьСтолбецКартотеки_Раздел1_СНИЛС;
+    var locOwner: TemplateCardfile;
+    locOwner = картШаблона_Раздел1;
+    with locOwner.AddColumn do
+      FieldName = 'СНИЛС';
+      Caption = 'С Н И Л С';
+      Hint = '';
+      Width = 110;
+      MinWidth = 110;
+      Alignment = Template.CenterAlign;
+      FieldType = Template.StringField;
+      Font.Size = locOwner.Font.Size;
+      Font.Color = clGray;
+      Visible = false;
+    end;
+  end;
+
+  proc ДобавитьСтолбецКартотеки_Раздел1_НачисленияТариф;
+    var locOwner: TemplateCardfile;
+    locOwner = картШаблона_Раздел1;
+    with locOwner.AddColumn do
+      FieldName = 'НачисленияТариф';
+      Caption = 'Оклад, тариф';
+      Hint = 'Начисления по тарифным ставкам';
+      Width = 80;
+      MinWidth = 80;
+      Alignment = Template.RightAlign;
+      FieldType = Template.NumericField;
+      Format = ',##0.00;;-';
+      Font.Size = locOwner.Font.Size;
+      Font.Color = clGray;
+      Visible = false;
+      CanSummary = true;
+    end;
+  end;
+
+  proc ДобавитьСтолбецКартотеки_Раздел1_ДоплатаСовмещение;
+    var locOwner: TemplateCardfile;
+    locOwner = картШаблона_Раздел1;
+    with locOwner.AddColumn do
+      FieldName = 'ДоплатаСовмещение';
+      Caption = 'Совмещение';
+      Hint = 'Доплата за совмещение';
+      Width = 80;
+      MinWidth = 80;
+      Alignment = Template.RightAlign;
+      FieldType = Template.NumericField;
+      Format = ',##0.00;;-';
+      Font.Size = locOwner.Font.Size;
+      Font.Color = clGray;
+      Visible = false;
+      CanSummary = true;
+    end;
+  end;
+
+  proc ДобавитьСтолбецКартотеки_Раздел1_НачисленияИныеФед;
+    var locOwner: TemplateCardfile;
+    locOwner = картШаблона_Раздел1;
+    with locOwner.AddColumn do
+      FieldName = 'НачисленияИныеФед';
+      Caption = 'Компенс.выпл.(фед.)';
+      Hint = 'Иные компенсационные выплаты (федеральные)';
+      Width = 80;
+      MinWidth = 80;
+      Alignment = Template.RightAlign;
+      FieldType = Template.NumericField;
+      Format = ',##0.00;;-';
+      Font.Size = locOwner.Font.Size;
+      Font.Color = clGray;
+      Visible = false;
+      CanSummary = true;
+    end;
+  end;
+
+  proc ДобавитьСтолбецКартотеки_Раздел1_НачисленияИныеРег;
+    var locOwner: TemplateCardfile;
+    locOwner = картШаблона_Раздел1;
+    with locOwner.AddColumn do
+      FieldName = 'НачисленияИныеРег';
+      Caption = 'Компенс.выпл.(рег.)';
+      Hint = 'Иные компенсационные выплаты (региональные)';
+      Width = 80;
+      MinWidth = 80;
+      Alignment = Template.RightAlign;
+      FieldType = Template.NumericField;
+      Format = ',##0.00;;-';
+      Font.Size = locOwner.Font.Size;
+      Font.Color = clGray;
+      Visible = false;
+      CanSummary = true;
+    end;
+  end;
+
+  proc ДобавитьСтолбецКартотеки_Раздел1_НачисленияПремии;
+    var locOwner: TemplateCardfile;
+    locOwner = картШаблона_Раздел1;
+    with locOwner.AddColumn do
+      FieldName = 'НачисленияПремии';
+      Caption = 'Премии';
+      Hint = 'НачисленияПремии';
+      Width = 80;
+      MinWidth = 80;
+      Alignment = Template.RightAlign;
+      FieldType = Template.NumericField;
+      Format = ',##0.00;;-';
+      Font.Size = locOwner.Font.Size;
+      Font.Color = clGray;
+      Visible = false;
+      CanSummary = true;
+    end;
+  end;
+
+  proc ДобавитьСтолбецКартотеки_Раздел1_ДоплатаСтаж;
+    var locOwner: TemplateCardfile;
+    locOwner = картШаблона_Раздел1;
+    with locOwner.AddColumn do
+      FieldName = 'ДоплатаСтаж';
+      Caption = 'Доплата за стаж';
+      Hint = 'Доплата за непрерывный стаж';
+      Width = 80;
+      MinWidth = 80;
+      Alignment = Template.RightAlign;
+      FieldType = Template.NumericField;
+      Format = ',##0.00;;-';
+      Font.Size = locOwner.Font.Size;
+      Font.Color = clGray;
+      Visible = false;
+      CanSummary = true;
+    end;
+  end;
+
+  proc ДобавитьСтолбецКартотеки_Раздел1_ДоплатаСМ;
+    var locOwner: TemplateCardfile;
+    locOwner = картШаблона_Раздел1;
+    with locOwner.AddColumn do
+      FieldName = 'ДоплатаСМ';
+      Caption = '"Сельские"';
+      Hint = 'Доплата за работу в сельской местности';
+      Width = 80;
+      MinWidth = 80;
+      Alignment = Template.RightAlign;
+      FieldType = Template.NumericField;
+      Format = ',##0.00;;-';
+      Font.Size = locOwner.Font.Size;
+      Font.Color = clGray;
+      Visible = false;
+      CanSummary = true;
+    end;
+  end;
+
+  proc ДобавитьСтолбецКартотеки_Раздел1_ДоплатаКвалКат;
+    var locOwner: TemplateCardfile;
+    locOwner = картШаблона_Раздел1;
+    with locOwner.AddColumn do
+      FieldName = 'ДоплатаКвалКат';
+      Caption = 'За квалификацию';
+      Hint = 'Надбавка за наличие квалификационной категории';
+      Width = 80;
+      MinWidth = 80;
+      Alignment = Template.RightAlign;
+      FieldType = Template.NumericField;
+      Format = ',##0.00;;-';
+      Font.Size = locOwner.Font.Size;
+      Font.Color = clGray;
+      Visible = false;
+      CanSummary = true;
+    end;
+  end;
+
+  proc ДобавитьСтолбецКартотеки_Раздел1_ДоплатаУС;
+    var locOwner: TemplateCardfile;
+    locOwner = картШаблона_Раздел1;
+    with locOwner.AddColumn do
+      FieldName = 'ДоплатаУС';
+      Caption = 'За уч.степень';
+      Hint = 'Надбавка за наличие ученой степени';
+      Width = 80;
+      MinWidth = 80;
+      Alignment = Template.RightAlign;
+      FieldType = Template.NumericField;
+      Format = ',##0.00;;-';
+      Font.Size = locOwner.Font.Size;
+      Font.Color = clGray;
+      Visible = false;
+      CanSummary = true;
+    end;
+  end;
+
+  proc ДобавитьСтолбецКартотеки_Раздел1_ДоплатаНаставничество;
+    var locOwner: TemplateCardfile;
+    locOwner = картШаблона_Раздел1;
+    with locOwner.AddColumn do
+      FieldName = 'ДоплатаНаставничество';
+      Caption = 'За наставн.';
+      Hint = 'Надбавка за наставничество';
+      Width = 80;
+      MinWidth = 80;
+      Alignment = Template.RightAlign;
+      FieldType = Template.NumericField;
+      Format = ',##0.00;;-';
+      Font.Size = locOwner.Font.Size;
+      Font.Color = clGray;
+      Visible = false;
+      CanSummary = true;
+    end;
+  end;
+
+  proc ДобавитьСтолбецКартотеки_Раздел1_ДоплатаМолодСпец;
+    var locOwner: TemplateCardfile;
+    locOwner = картШаблона_Раздел1;
+    with locOwner.AddColumn do
+      FieldName = 'ДоплатаМолодСпец';
+      Caption = 'Доплата мол.сп.';
+      Hint = 'Доплата молодым специалистам';
+      Width = 80;
+      MinWidth = 80;
+      Alignment = Template.RightAlign;
+      FieldType = Template.NumericField;
+      Format = ',##0.00;;-';
+      Font.Size = locOwner.Font.Size;
+      Font.Color = clGray;
+      Visible = false;
+      CanSummary = true;
+    end;
+  end;
+
+  proc ДобавитьСтолбецКартотеки_Раздел1_ВыплатыИныеСтимул;
+    var locOwner: TemplateCardfile;
+    locOwner = картШаблона_Раздел1;
+    with locOwner.AddColumn do
+      FieldName = 'ВыплатыИныеСтимул';
+      Caption = 'Иные выпл.';
+      Hint = 'Иные стимулирующие выплаты';
+      Width = 80;
+      MinWidth = 80;
+      Alignment = Template.RightAlign;
+      FieldType = Template.NumericField;
+      Format = ',##0.00;;-';
+      Font.Size = locOwner.Font.Size;
+      Font.Color = clGray;
+      Visible = false;
+      CanSummary = true;
+    end;
+  end;
+
+  proc ДобавитьСтолбецКартотеки_Раздел1_ВыплатыПрочие;
+    var locOwner: TemplateCardfile;
+    locOwner = картШаблона_Раздел1;
+    with locOwner.AddColumn do
+      FieldName = 'ВыплатыПрочие';
+      Caption = 'Прочие выпл.';
+      Hint = 'Прочие выплаты';
+      Width = 80;
+      MinWidth = 80;
+      Alignment = Template.RightAlign;
+      FieldType = Template.NumericField;
+      Format = ',##0.00;;-';
+      Font.Size = locOwner.Font.Size;
+      Font.Color = clGray;
+      Visible = false;
+      CanSummary = true;
+    end;
+  end;
+
+  proc ДобавитьСтолбецКартотеки_Раздел1_ВыплатыКомпенс;
+    var locOwner: TemplateCardfile;
+    locOwner = картШаблона_Раздел1;
+    with locOwner.AddColumn do
+      FieldName = 'ВыплатыКомпенс';
+      Caption = '"Районные"';
+      Hint = 'Компенсационные выплаты по районному регулированию';
+      Width = 80;
+      MinWidth = 80;
+      Alignment = Template.RightAlign;
+      FieldType = Template.NumericField;
+      Format = ',##0.00;;-';
+      Font.Size = locOwner.Font.Size;
+      Font.Color = clGray;
+      Visible = false;
+      CanSummary = true;
+    end;
+  end;
+
+  proc ДобавитьСтолбецКартотеки_Раздел1_НачисленияИтого;
+    var locOwner: TemplateCardfile;
+    locOwner = картШаблона_Раздел1;
+    with locOwner.AddColumn do
+      FieldName = 'НачисленияИтого';
+      Caption = 'Итого';
+      Hint = 'Итого начисления';
+      Width = 80;
+      MinWidth = 80;
+      Alignment = Template.RightAlign;
+      FieldType = Template.NumericField;
+      Format = ',##0.00;;-';
+      Font.Size = locOwner.Font.Size;
+      Font.Color = clGray;
+      Font.Bold = true;
+      CanSummary = true;
+    end;
+  end;
+
 
 
   proc Модифицировать_кнСохранитьНастройку;
@@ -805,12 +1126,12 @@ inobject private
     locFrameName = locGridValue[2] as String;
     locParentFrameName = locGridValue[3] as String;
     if ('фреймРеквизитыОтчета' in [locFrameName,locParentFrameName]):
---      кнДобавитьСтраницу.Caption = 'Расчет';
---      кнДобавитьСтраницу.Enabled = true;
---      кнДобавитьСтраницу.Font.Bold = true;
---      кнДобавитьСтраницу.Hint = 'Автоматическое заполнение формы';
---      кнДобавитьСтраницу.OnClick = 'кнПриНажатии_Расчет';
---      --
+      кнДобавитьСтраницу.Caption = 'Расчет';
+      кнДобавитьСтраницу.Enabled = true;
+      кнДобавитьСтраницу.Font.Bold = true;
+      кнДобавитьСтраницу.Hint = 'Автоматическое заполнение формы';
+      кнДобавитьСтраницу.OnClick = 'кнПриНажатии_Расчет';
+      --
 --      кнСоздатьФайл.Enabled = true;
 --      кнСоздатьФайл.Caption = 'Создать файл';
 --      кнСоздатьФайл.Hint = 'Создать транзитный файл в формате .XML';
