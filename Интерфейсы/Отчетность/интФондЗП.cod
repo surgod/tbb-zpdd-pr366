@@ -188,9 +188,6 @@ inobject private
     od;
   end;
 
-
-
-
   func ѕолучить—уммуЌачислений_¬сего(лок¬идыЅюджета: Ѕюджет_«ѕиƒƒ.—правочники.¬идыЅюджета[]): numeric;
     var aFlt: string[];
     with Query.Create([Ѕюджет_«ѕиƒƒ.–асчетныеќперации.Ќачисление]) do
@@ -221,7 +218,6 @@ inobject private
       Return CalcAggregates('Sum(—умма ”чету)') as numeric;
     end;
   end;
-
 
 
 end

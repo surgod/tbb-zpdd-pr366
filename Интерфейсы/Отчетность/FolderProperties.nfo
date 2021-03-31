@@ -3,4 +3,6 @@
 <Items>
   <Item Name="интСИоЗП"/>
   <Item Name="интСЗП"/>
+  <Item Name="интФондЗП"/>
+  <Item Name="интСЗПРук"/>
 </Items>

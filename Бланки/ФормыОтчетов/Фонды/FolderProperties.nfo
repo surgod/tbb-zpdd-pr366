@@ -3,4 +3,6 @@
 <Items>
   <Item Name="редСИоЗП"/>
   <Item Name="редСЗП"/>
+  <Item Name="редФондЗП"/>
+  <Item Name="редСЗПРук"/>
 </Items>

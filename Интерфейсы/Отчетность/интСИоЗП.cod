@@ -143,8 +143,18 @@ inobject public
   end;
 
   proc РасчетРаздела_3;
+    var y, yy: integer;
+    var интСЗПРук :Отчетность.интСЗПРук;
     УдалитьДанные_Раздел3;
     интНастройка = Настройки.интСИоЗП.OpenForSubject(Record.НашеУчреждение);
+    yy = Record.Период_СЗПРук.Count;
+    for y = 1 .. yy do
+      Hint('Расчет раздела 3 за ' + Record.Период_СЗПРук[y].Имя);
+      интСЗПРук = Отчетность.интСЗПРук.CreateByOwner(Record, Record.Период_СЗПРук[y]);
+      if (интСЗПРук <> nil):
+        интСЗПРук.Calc;
+      fi;
+    od;
   end;
 
 

@@ -243,7 +243,7 @@ inobject private
       elsif (locGridName = 'Раздел 2') or (Pos('Раздел2', locFrameName) > 0) or (Pos('Раздел2', locParentFrameName) > 0):
         ДобавитьСведения_Раздел2;
       elsif (locGridName = 'Раздел 3') or (Pos('Раздел3', locFrameName) > 0) or (Pos('Раздел3', locParentFrameName) > 0):
-        --ДобавитьСведения_Раздел3;
+        ДобавитьСведения_Раздел3;
       fi;
     fi;
   end;
@@ -352,7 +352,9 @@ inobject private
       картШаблона_Раздел3.Font.Size = БиблиотекаСтилей.StyleByName('Текст шаблона').Font.Size;
       картШаблона_Раздел3.Font.Bold = true;
       картШаблона_Раздел3.Align = true;
+      картШаблона_Раздел3.Order = 'ОтчетныйПериод.Код';
       -- столбцы --
+      ДобавитьСтолбецКартотеки_Раздел3_ОтчетныйПериод;
     fi;
   end;
 
@@ -853,7 +855,21 @@ inobject private
     end;
   end;
 
-
+  proc ДобавитьСтолбецКартотеки_Раздел3_ОтчетныйПериод;
+    var locOwner: TemplateCardfile;
+    locOwner = картШаблона_Раздел3;
+    with locOwner.AddColumn do
+      FieldName = 'ОтчетныйПериод.Имя';
+      Caption = 'Отчетный период';
+      Hint = '';
+      Width = 0;
+      MinWidth = 200;
+      Alignment = Template.LeftAlign;
+      FieldType = Template.ReferenceField;
+      Font.Size = locOwner.Font.Size;
+      Font.Color = clGray;
+    end;
+  end;
 
   proc Модифицировать_кнСохранитьНастройку;
     if (интНастройка <> nil):
@@ -1241,6 +1257,28 @@ inobject private
     fi;
   end;
 
+  proc ДобавитьСведения_Раздел3;
+    var i: integer;
+    var локПериод: ТББ_Базовый.Справочники.ПериодыРасчета;
+    var locAltValue: string[];
+    var locAltChoice: integer;
+    if (Self.Record.Период_СЗПРук.Count = 0):
+      DisplayMessage('Не указаны отчетные периоды р.3 на закладке "Реквизиты"!');
+      Return;
+    else
+      for i = 1 .. Self.Record.Период_СЗПРук.Count do
+        locAltValue[i] = Self.Record.Период_СЗПРук[i].Код;
+      od;
+      locAltChoice = Alternate('Выберите отчетный год', locAltValue);
+      if (locAltChoice > 0):
+        локПериод = СИС2.ФункцииДокумента.QueryRecord(ТББ_Базовый.Справочники.ПериодыРасчета, 'Код="' + locAltValue[locAltChoice] + '"');
+        if (локПериод <> nil):
+          Отчетность.интСЗПРук.CreateByOwner(Self.Record, локПериод, true);
+        fi;
+      fi;
+    fi;
+  end;
+
 
 
   --
@@ -1295,11 +1333,11 @@ inobject private
       кнДобавитьСтраницу.Enabled = true;
       кнДобавитьСтраницу.Hint = 'Добавить сведения в р.2';
       кнДобавитьСтраницу.OnClick = 'кнПриНажатии_ДобавитьСведения';
---    elsif ('фреймПриложение1' in [locFrameName,locParentFrameName]):
---      кнДобавитьСтраницу.Caption = 'Добавить справку';
---      кнДобавитьСтраницу.Enabled = true;
---      кнДобавитьСтраницу.Hint = 'Добавить справку о доходах';
---      кнДобавитьСтраницу.OnClick = 'кнПриНажатии_ДобавитьСведения';
+    elsif ('фреймРаздел3' in [locFrameName,locParentFrameName]):
+      кнДобавитьСтраницу.Caption = 'Добавить сведения';
+      кнДобавитьСтраницу.Enabled = true;
+      кнДобавитьСтраницу.Hint = 'Добавить сведения в р.3';
+      кнДобавитьСтраницу.OnClick = 'кнПриНажатии_ДобавитьСведения';
     fi;
   end;
 
