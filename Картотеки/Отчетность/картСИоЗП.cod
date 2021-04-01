@@ -66,16 +66,19 @@ inobject private
     fi;
   end;
 
-  func картотека_ѕеред»зменением(Action :Cardfile.ModifyActions; aRecord :Record; aGroup :Record; var AskConfirm :Logical) :Logical;
+  func картотека_ѕеред»зменением (Action: Cardfile.ModifyActions; aRecord: Record; aGroup: Record; var AskConfirm: Logical) :Logical;
     var i, ii: integer;
+    var инт—»о«ѕ: ќтчетность.инт—»о«ѕ;
     if (Action = Cardfile.DeleteRecord): --это удаление
       if (aRecord <> nil): -- измен€етс€ одна запись
-        --ќтчетность.инт6Ќƒ‘Ћ2.”далить«аписи–азделов(aRecord);
+        инт—»о«ѕ = ќтчетность.инт—»о«ѕ.OpenRecord(aRecord as Ѕюджет_«ѕиƒƒ_ѕ–366.ќтчетность.—»о«ѕ);
+        инт—»о«ѕ.”далитьƒанные_–азделов;
       else -- измен€етс€ группа записей -- (aRecord=nil)
         ii = Self.Cardfile.SelectedCount;
         for i = 1 .. ii do
           Hint('[' + Str(i) + '/' + Str(ii) + '] : ”даление сопр€женных записей...');
-          --ќтчетность.инт6Ќƒ‘Ћ2.”далить«аписи–азделов(Self.Cardfile.Selected[i]);
+          инт—»о«ѕ = ќтчетность.инт—»о«ѕ.OpenRecord(Self.Cardfile.Selected[i] as Ѕюджет_«ѕиƒƒ_ѕ–366.ќтчетность.—»о«ѕ);
+          инт—»о«ѕ.”далитьƒанные_–азделов;
         od;
       fi;
     fi;

@@ -88,4 +88,10 @@ inobject private
     fi;
   end;
 
+-- 2_Вспомогательные методы0. --
+
+  func ПоказыватьСекцию_КатегорияУчета: Logical;
+    Return true;
+  end;
+
 end

@@ -434,6 +434,8 @@ inobject public
   proc Вычислить_НачисленияОУТ(Index: integer);
     if (Record.СЗПД[Index].ОУТ <> nil):
       Record.СЗПД[Index].НачисленияОУТ = Record.СЗПД[Index].НачисленияИтого;
+    else
+      Record.СЗПД[Index].НачисленияОУТ = 0;
     fi;
   end;
 
