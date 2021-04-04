@@ -125,17 +125,19 @@ class "";
 
   proc СоздатьСтруктуру_СИоЗП;
     locXml.OpenTag('СИоЗП', nil);
+    locXml.BreakLine;
       СоздатьСтруктуру_Организация;
       СоздатьСтруктуру_СЗП;
       СоздатьСтруктуру_ФондЗП;
       СоздатьСтруктуру_СЗПРук;
-      СоздатьСтруктуру_СлужебнаяИнформация;
     locXml.CloseTag;
+    locXml.BreakLine;
+    СоздатьСтруктуру_СлужебнаяИнформация;
   end;
 
   proc СоздатьСтруктуру_Организация;
     locXml.OpenTag('Организация', nil);
-      locXml.BreakLine;
+    locXml.BreakLine;
       locXml.CreateTag('УТ2:ИНН', Record.ИНН , nil);
       locXml.BreakLine;
       locXml.CreateTag('УТ2:КПП', Record.КПП , nil);
@@ -338,6 +340,7 @@ class "";
   proc СоздатьСтруктуру_ФондЗП;
     var cRecord: Бюджет_ЗПиДД_ПР366.Отчетность.СИоЗП_ФондЗП;
     locXml.OpenTag('ФондЗП', nil);
+    locXml.BreakLine;
     with Query.Create([Бюджет_ЗПиДД_ПР366.Отчетность.СИоЗП_ФондЗП]) do
       Filter = 'фСИоЗП=' + Str(Self.Record);
       Order = 'ОтчетныйПериод.Код';
@@ -349,6 +352,7 @@ class "";
       od;
     end;
     locXml.CloseTag;
+    locXml.BreakLine;
   end;
 
   proc СоздатьСтруктуру_ПериодФондЗП(cRecord: Бюджет_ЗПиДД_ПР366.Отчетность.СИоЗП_ФондЗП);
@@ -397,6 +401,7 @@ class "";
         locXml.BreakLine;
       fi;
     locXml.CloseTag;
+    locXml.BreakLine;
   end;
 
   ---

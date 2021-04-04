@@ -468,7 +468,7 @@ inobject private
     locOwner = картШаблона_Раздел1;
     with locOwner.AddColumn do
       FieldName = 'Работник.ИмяФизлица';
-      Caption = 'Фамилия';
+      Caption = 'Имя';
       Hint = '';
       Width = 0;
       MinWidth = 60;
@@ -484,7 +484,7 @@ inobject private
     locOwner = картШаблона_Раздел1;
     with locOwner.AddColumn do
       FieldName = 'Работник.ОтчествоФизлица';
-      Caption = 'Фамилия';
+      Caption = 'Отчество';
       Hint = '';
       Width = 0;
       MinWidth = 60;
