@@ -253,7 +253,7 @@ class "";
         locXml.BreakLine;
       fi;
       if (cRecord.СЗПД[Index].ОУТ <> ''):
-        locXml.CreateTag('НачисленияТариф', cRecord.СЗПД[Index].ОУТ, nil);
+        locXml.CreateTag('ОУТ', cRecord.СЗПД[Index].ОУТ, nil);
         locXml.BreakLine;
       fi;
       if (cRecord.СЗПД[Index].НачисленияОУТ > 0):
