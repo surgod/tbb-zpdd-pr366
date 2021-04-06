@@ -326,6 +326,7 @@ inobject private
       ДобавитьСтолбецКартотеки_Раздел1_Работник_Отчество;
       ДобавитьСтолбецКартотеки_Раздел1_ОтчетныйПериод;
       ДобавитьСтолбецКартотеки_Раздел1_СНИЛС;
+      ДобавитьСтолбецКартотеки_Раздел1_ОбщийСтаж;
       ДобавитьСтолбецКартотеки_Раздел1_НачисленияТариф;
       ДобавитьСтолбецКартотеки_Раздел1_ДоплатаСовмещение;
       ДобавитьСтолбецКартотеки_Раздел1_НачисленияИныеФед;
@@ -525,6 +526,25 @@ inobject private
       Font.Size = locOwner.Font.Size;
       Font.Color = clGray;
       Visible = false;
+    end;
+  end;
+
+  proc ДобавитьСтолбецКартотеки_Раздел1_ОбщийСтаж;
+    var locOwner: TemplateCardfile;
+    locOwner = картШаблона_Раздел1;
+    with locOwner.AddColumn do
+      FieldName = 'ОбщийСтаж';
+      Caption = 'Общий стаж';
+      Hint = 'Общий трудовой стаж, лет';
+      Width = 80;
+      MinWidth = 80;
+      Alignment = Template.RightAlign;
+      FieldType = Template.NumericField;
+      Format = '##0;;0';
+      Font.Size = locOwner.Font.Size;
+      Font.Color = clGray;
+      Visible = false;
+      CanSummary = true;
     end;
   end;
 

@@ -130,6 +130,7 @@ class "";
       СоздатьСтруктуру_СЗП;
       СоздатьСтруктуру_ФондЗП;
       СоздатьСтруктуру_СЗПРук;
+      Hint(' ');
     locXml.CloseTag;
     locXml.BreakLine;
     СоздатьСтруктуру_СлужебнаяИнформация;
@@ -186,13 +187,17 @@ class "";
   proc СоздатьСтруктуры_Работник(cPeriod: ТББ_Базовый.Справочники.ПериодыРасчета);
     var aFlt: string[];
     var cRecord: Бюджет_ЗПиДД_ПР366.Отчетность.СИоЗП_СЗП;
+    var i, ii: integer;
     with Query.Create([Бюджет_ЗПиДД_ПР366.Отчетность.СИоЗП_СЗП]) do
       aFlt[1] = 'фСИоЗП=' + Str(Self.Record);
       aFlt[2] = 'ОтчетныйПериод=' + Str(cPeriod);
       Filter = ТББ_Базовый.Фильтры.СложитьСтрокиФильтраПоИ(aFlt);
       Order = 'Фамилия,Имя,Отчество';
       Select;
+      ii = Count;
       while not Eof do
+        i = i + 1;
+        Hint('Выполнение (р.1 : ' + cPeriod.Имя + ' ...)', i, ii);
         cRecord = Current as Бюджет_ЗПиДД_ПР366.Отчетность.СИоЗП_СЗП;
         СоздатьСтруктуру_Работник(cRecord);
         Next;
@@ -206,7 +211,9 @@ class "";
     locXml.BreakLine;
       СоздатьСтруктуру_ФИО(cRecord);
       locXml.CreateTag('УТ2:СНИЛС', cRecord.СНИЛС , nil);
+      locXml.BreakLine;
       locXml.CreateTag('ОбщийСтаж', Str(cRecord.ОбщийСтаж, '0') , nil);
+      locXml.BreakLine;
       for Index = 1 .. cRecord.СЗПД.Count do
         СоздатьСтруктуру_СЗПД(cRecord, Index);
       od;
@@ -339,6 +346,7 @@ class "";
 
   proc СоздатьСтруктуру_ФондЗП;
     var cRecord: Бюджет_ЗПиДД_ПР366.Отчетность.СИоЗП_ФондЗП;
+    Hint('Выполнение (фонд ЗП)...');
     locXml.OpenTag('ФондЗП', nil);
     locXml.BreakLine;
     with Query.Create([Бюджет_ЗПиДД_ПР366.Отчетность.СИоЗП_ФондЗП]) do
@@ -408,6 +416,7 @@ class "";
 
   proc СоздатьСтруктуру_СЗПРук;
     var cRecord: Бюджет_ЗПиДД_ПР366.Отчетность.СИоЗП_СЗПРук;
+    Hint('Выполнение (ср. ЗП)...');
     locXml.OpenTag('СЗПРук', nil);
     locXml.BreakLine;
     with Query.Create([Бюджет_ЗПиДД_ПР366.Отчетность.СИоЗП_СЗПРук]) do
